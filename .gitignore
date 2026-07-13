@@ -1,0 +1,9 @@
+# Gitignore
+node_modules/
+.gemini/
+__pycache__/
+.env
+.vscode/
+*.log
+scratch/
+.agents/

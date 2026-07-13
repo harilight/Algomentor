@@ -1,0 +1,1862 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CodeViz Engine v5.0 - Ultimate Hybrid Map & Stack</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- CodeMirror CSS & Theme -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/theme/dracula.min.css">
+    <style>
+        .CodeMirror {
+            height: 100% !important;
+            min-height: 280px;
+            border-radius: 0.5rem;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            font-size: 0.85rem;
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #111827;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #374151;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #4b5563;
+        }
+        
+        /* Custom highlight for active line in CodeMirror */
+        .active-line-highlight {
+            background-color: rgba(99, 102, 241, 0.25) !important;
+            border-left: 5px solid #6366f1 !important;
+        }
+        
+        /* Keyframe flash for mutated variables */
+        @keyframes flashYellow {
+            0% { background-color: rgba(245, 158, 11, 0.35); box-shadow: 0 0 12px rgba(245, 158, 11, 0.15); }
+            100% { background-color: transparent; box-shadow: none; }
+        }
+        .animate-flash {
+            animation: flashYellow 0.8s ease-out;
+        }
+
+        /* Spring push/pop stack animations */
+        @keyframes slideDownPush {
+            0% { transform: translateY(-80px); opacity: 0; }
+            100% { transform: translateY(0); opacity: 1; }
+        }
+        .stack-block-push {
+            animation: slideDownPush 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.2) forwards;
+        }
+
+        /* Queue enqueue slide animations */
+        @keyframes slideInQueue {
+            0% { transform: translateX(80px); opacity: 0; }
+            100% { transform: translateX(0); opacity: 1; }
+        }
+        .queue-block-enqueue {
+            animation: slideInQueue 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.2) forwards;
+        }
+        
+        /* Node pointer cursor floating tags */
+        .floating-cursor-tag {
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-100 min-h-screen flex flex-col">
+
+    <header class="bg-gray-800 border-b border-gray-700 p-4 shadow-md flex justify-between items-center">
+        <h1 class="text-xl font-bold tracking-wide text-indigo-400">⚡ CodeViz Engine <span class="text-xs text-gray-500 font-mono">v5.0 (Hybrid Flow Map & Call Stack)</span></h1>
+        <span class="text-xs bg-indigo-900/50 text-indigo-300 px-3 py-1 rounded-full border border-indigo-800/80">Production Edition</span>
+    </header>
+
+    <main class="flex-1 flex flex-col lg:flex-row p-4 gap-4 overflow-hidden">
+        
+        <!-- Left Panel: Input code & Settings -->
+        <div class="w-full lg:w-4/12 flex flex-col gap-4">
+            <div class="bg-gray-800 p-4 rounded-xl border border-gray-700 flex-[3] flex flex-col min-h-[350px]">
+                <label class="block text-sm font-medium text-gray-400 mb-2">Paste Python Function Here:</label>
+                <div class="flex-1 border border-gray-700 rounded-lg overflow-hidden bg-gray-950">
+                    <textarea id="code-input" class="w-full h-full p-3 bg-gray-950 font-mono text-sm text-emerald-400 border-0 rounded-lg focus:outline-none resize-none">def simple_loop(n):
+    total = 0
+    for i in range(n):
+        total += i
+    return total</textarea>
+                </div>
+            </div>
+
+            <div class="bg-gray-800 p-4 rounded-xl border border-gray-700 shadow-sm flex-1">
+                <div class="grid grid-cols-2 gap-3 mb-4">
+                    <div>
+                        <label class="block text-xs text-gray-400 mb-1">Function Name</label>
+                        <input id="func-name" type="text" value="simple_loop" class="w-full p-2 bg-gray-950 border border-gray-700 rounded text-sm text-gray-100 focus:outline-none placeholder-gray-600" placeholder="Auto-detects...">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-gray-400 mb-1">Arguments</label>
+                        <input id="func-args" type="text" value="3" class="w-full p-2 bg-gray-950 border border-gray-700 rounded text-sm text-gray-100 focus:outline-none">
+                    </div>
+                </div>
+                <button id="btn-visualize" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-2.5 px-4 rounded-lg transition shadow">
+                    Generate Trace Map
+                </button>
+            </div>
+        </div>
+
+        <!-- Right Panel: Visualizers & Controllers -->
+        <div class="w-full lg:w-8/12 flex flex-col gap-4 overflow-hidden">
+            <!-- Media Controller / Timeline -->
+            <div class="bg-gray-800 p-4 rounded-xl border border-gray-700 flex flex-wrap items-center gap-4 shadow-sm">
+                <div class="flex items-center gap-2">
+                    <button id="btn-prev" class="px-3 py-1.5 bg-gray-700 hover:bg-gray-600 rounded text-sm disabled:opacity-50 transition" disabled title="Previous Step">◀</button>
+                    <button id="btn-play-pause" class="px-4 py-1.5 bg-green-600 hover:bg-green-500 text-white rounded text-sm font-semibold disabled:opacity-50 transition" disabled>Play</button>
+                    <button id="btn-stop" class="px-3 py-1.5 bg-red-600 hover:bg-red-500 text-white rounded text-sm disabled:opacity-50 transition" disabled title="Stop & Reset">■</button>
+                    <button id="btn-next" class="px-3 py-1.5 bg-gray-700 hover:bg-gray-600 rounded text-sm disabled:opacity-50 transition" disabled title="Next Step">▶</button>
+                </div>
+                <input id="timeline-slider" type="range" min="0" max="0" value="0" class="flex-1 min-w-[120px] accent-indigo-500 cursor-pointer" disabled>
+                <div class="flex items-center gap-2">
+                    <label class="text-xs text-gray-400">Speed:</label>
+                    <select id="select-speed" class="bg-gray-950 border border-gray-700 text-gray-100 rounded text-xs p-1 focus:outline-none" disabled>
+                        <option value="1500">0.5x</option>
+                        <option value="800" selected>1.0x</option>
+                        <option value="450">2.0x</option>
+                        <option value="180">5.0x</option>
+                    </select>
+                </div>
+                <span id="step-counter" class="text-xs font-mono text-gray-400">Step: 0/0</span>
+            </div>
+
+            <!-- Two-Column Trackers & Variables -->
+            <!-- Two-Column Trackers & Variables -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 flex-1 overflow-auto">
+                <!-- 1. Live Code Tracker -->
+                <div class="bg-gray-800 rounded-xl border border-gray-700 p-4 flex flex-col min-h-[280px]">
+                    <div class="border-b border-gray-700 pb-2 mb-3">
+                        <span class="text-xs font-semibold tracking-wider text-gray-400 uppercase">1. Live Code Line Tracker</span>
+                    </div>
+                    <div id="code-tracker-container" class="flex-1 bg-gray-950 rounded-lg p-3 font-mono text-xs overflow-auto whitespace-pre flex flex-col select-none">
+                        <div class="text-gray-500 italic font-sans">Awaiting codebase stream...</div>
+                    </div>
+                </div>
+
+                <!-- 2. Variables & Explanations -->
+                <div class="bg-gray-800 rounded-xl border border-gray-700 p-4 flex flex-col min-h-[280px] overflow-hidden">
+                    <div class="border-b border-gray-700 pb-2 mb-3 flex justify-between items-center">
+                        <span class="text-xs font-semibold tracking-wider text-gray-400 uppercase">2. Active Frame Variables & Step Progress</span>
+                        <span id="current-line-tag" class="text-xs font-mono bg-indigo-900 text-indigo-200 px-2 py-0.5 rounded animate-pulse">Line: --</span>
+                    </div>
+                    
+                    <div class="flex-1 flex flex-col gap-3 overflow-hidden">
+                        <!-- Step Annotation Explainer Panel -->
+                        <div id="annotation-box" class="bg-indigo-950/40 border border-indigo-900/60 rounded-lg p-3 text-xs text-indigo-200">
+                            <span class="font-bold text-indigo-400 block mb-1">💡 Step Explanation:</span>
+                            <div id="annotation-text" class="italic leading-relaxed">Submit a function payload to visualize line-by-line details.</div>
+                        </div>
+
+                        <!-- Graphical Variables Inspector Canvas -->
+                        <div id="canvas" class="flex-1 bg-gray-950 rounded-lg p-3 overflow-auto">
+                            <div class="text-gray-500 italic font-sans text-xs">Local variables appear here.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. Dynamic Hybrid Visualization Panel -->
+            <div id="dynamic-panel" class="bg-gray-800 rounded-xl border border-gray-700 p-4 flex flex-col min-h-[260px] max-h-[340px]">
+                <div class="border-b border-gray-700 pb-1 mb-3 flex justify-between items-center">
+                    <span id="dynamic-panel-title" class="text-xs font-semibold tracking-wider text-gray-400 uppercase">3. Live Control-Flow Map</span>
+                </div>
+                
+                <!-- Flow Tree Blocks Container -->
+                <div id="flow-tree-view" class="flex-1 bg-gray-950 rounded-lg p-4 flex flex-col justify-center items-center gap-4 overflow-auto">
+                    <div class="text-gray-500 italic text-xs font-sans">Awaiting trace data...</div>
+                </div>
+
+                <!-- Call Stack Vertical Frames Container -->
+                <div id="stack-frame-view" class="hidden flex-1 bg-gray-950 rounded-lg p-4 flex flex-col-reverse justify-start items-center gap-2 overflow-auto">
+                </div>
+
+                <!-- SVG Graph Link Canvas Container -->
+                <div id="svg-canvas-container" class="hidden flex-1 bg-gray-950 rounded-lg p-2 overflow-auto">
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- CodeMirror Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/python/python.min.js"></script>
+    
+    <script>
+        // Initialize CodeMirror Editor with Fallback Support
+        let editor;
+        const rawTextarea = document.getElementById('code-input');
+        
+        if (typeof CodeMirror !== 'undefined') {
+            editor = CodeMirror.fromTextArea(rawTextarea, {
+                mode: 'python',
+                theme: 'dracula',
+                lineNumbers: true,
+                indentUnit: 4,
+                matchBrackets: true,
+                viewportMargin: Infinity
+            });
+        } else {
+            console.warn("CodeMirror failed to load. Falling back to styled textarea.");
+            // Mock editor to ensure compatibility
+            editor = {
+                getValue: () => rawTextarea.value,
+                setValue: (val) => { rawTextarea.value = val; }
+            };
+        }
+
+        let executionTrace = [];
+        let layoutMetadata = [];
+        let currentStepIndex = 0;
+        let sourceLines = [];
+        let autoplayInterval = null;
+        let globalNodeCoords = {};
+        let globalNodeMap = {};
+        let isTraceTree = false;
+        let isTraceLinkedList = false;
+        let isTraceDoublyLinked = false;
+
+        // Dom References
+        const funcNameInput = document.getElementById('func-name');
+        const funcArgs = document.getElementById('func-args');
+        const btnVisualize = document.getElementById('btn-visualize');
+        const slider = document.getElementById('timeline-slider');
+        const stepCounter = document.getElementById('step-counter');
+        const currentLineTag = document.getElementById('current-line-tag');
+        const canvas = document.getElementById('canvas');
+        const codeTrackerContainer = document.getElementById('code-tracker-container');
+        const dynamicPanelTitle = document.getElementById('dynamic-panel-title');
+        
+        const flowTreeView = document.getElementById('flow-tree-view');
+        const stackFrameView = document.getElementById('stack-frame-view');
+        const svgCanvasContainer = document.getElementById('svg-canvas-container');
+
+        const btnPrev = document.getElementById('btn-prev');
+        const btnNext = document.getElementById('btn-next');
+        const btnPlayPause = document.getElementById('btn-play-pause');
+        const btnStop = document.getElementById('btn-stop');
+        const selectSpeed = document.getElementById('select-speed');
+        const annotationText = document.getElementById('annotation-text');
+
+        // Setup Media Controls
+        btnPrev.addEventListener('click', () => {
+            stopAutoplay();
+            if (currentStepIndex > 0) {
+                currentStepIndex--;
+                renderCurrentStep();
+            }
+        });
+
+        btnNext.addEventListener('click', () => {
+            stopAutoplay();
+            if (currentStepIndex < executionTrace.length - 1) {
+                currentStepIndex++;
+                renderCurrentStep();
+            }
+        });
+
+        btnPlayPause.addEventListener('click', toggleAutoplay);
+        btnStop.addEventListener('click', stopAutoplayAndReset);
+        selectSpeed.addEventListener('change', () => {
+            if (autoplayInterval) {
+                stopAutoplay();
+                startAutoplay();
+            }
+        });
+
+        slider.addEventListener('input', (e) => {
+            stopAutoplay();
+            currentStepIndex = parseInt(e.target.value);
+            renderCurrentStep();
+        });
+
+        // Trigger Trace Post request API
+        btnVisualize.addEventListener('click', async () => {
+            stopAutoplay();
+            
+            const rawCode = editor.getValue();
+            sourceLines = rawCode.split('\n');
+
+            let detectedName = funcNameInput.value.trim();
+            // Automatically scan function name if empty, placeholder, or previous match
+            if (!detectedName || detectedName === "simple_loop" || detectedName === "factorial" || detectedName === "__init__") {
+                const defLine = sourceLines.find(line => line.startsWith('def '));
+                if (defLine) {
+                    const match = defLine.match(/^def\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*\(/);
+                    if (match && match[1]) {
+                        detectedName = match[1];
+                        funcNameInput.value = detectedName;
+                    }
+                }
+            }
+
+            const payload = {
+                code: rawCode,
+                function_name: detectedName,
+                args: funcArgs.value.split(',').map(x => {
+                    const strVal = x.trim();
+                    if (strVal === "") return null;
+                    const num = Number(strVal);
+                    return isNaN(num) ? strVal : num;
+                }).filter(x => x !== null)
+            };
+
+            try {
+                btnVisualize.innerText = "Analyzing Stream...";
+                const response = await fetch('http://127.0.0.1:8000/trace', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                
+                const data = await response.json();
+                if (!data.success) throw new Error(data.detail || "Trace execution aborted.");
+
+                executionTrace = data.trace;
+                layoutMetadata = data.layout_metadata || [];
+                currentStepIndex = 0;
+                precalculateNodeCoordinates(executionTrace);
+                
+                // Initialize controllers
+                slider.max = executionTrace.length - 1;
+                slider.value = 0;
+                slider.disabled = false;
+                
+                btnPrev.disabled = true;
+                btnNext.disabled = executionTrace.length <= 1;
+                btnPlayPause.disabled = executionTrace.length <= 1;
+                btnStop.disabled = false;
+                selectSpeed.disabled = false;
+
+                renderCurrentStep();
+            } catch (err) {
+                alert("Error: " + err.message);
+            } finally {
+                btnVisualize.innerText = "Generate Trace Map";
+            }
+        });
+
+        // Autoplay Loops
+        function startAutoplay() {
+            const speed = parseInt(selectSpeed.value);
+            btnPlayPause.innerText = "Pause";
+            btnPlayPause.classList.replace('bg-green-600', 'bg-amber-600');
+            btnPlayPause.classList.replace('hover:bg-green-500', 'hover:bg-amber-500');
+            autoplayInterval = setInterval(() => {
+                if (currentStepIndex < executionTrace.length - 1) {
+                    currentStepIndex++;
+                    renderCurrentStep();
+                } else {
+                    stopAutoplay();
+                }
+            }, speed);
+        }
+
+        function stopAutoplay() {
+            if (autoplayInterval) {
+                clearInterval(autoplayInterval);
+                autoplayInterval = null;
+            }
+            btnPlayPause.innerText = "Play";
+            btnPlayPause.classList.replace('bg-amber-600', 'bg-green-600');
+            btnPlayPause.classList.replace('hover:bg-amber-500', 'hover:bg-green-500');
+        }
+
+        // Toggle Autoplay
+        function toggleAutoplay() {
+            if (autoplayInterval) {
+                stopAutoplay();
+            } else {
+                if (currentStepIndex === executionTrace.length - 1) {
+                    currentStepIndex = 0;
+                }
+                startAutoplay();
+            }
+        }
+
+        function stopAutoplayAndReset() {
+            stopAutoplay();
+            currentStepIndex = 0;
+            renderCurrentStep();
+        }
+
+        // Render values
+        function formatVariableValue(v) {
+            if (!v) return "None";
+            if (v.type === 'int' || v.type === 'float' || v.type === 'bool') return String(v.value);
+            if (v.type === 'str') return `"${v.value}"`;
+            if (v.type === 'list' || v.type === 'tuple' || v.type === 'set') {
+                const items = v.value.map(formatVariableValue).join(', ');
+                const brackets = v.type === 'list' ? ['[', ']'] : (v.type === 'tuple' ? ['(', ')'] : ['{', '}']);
+                return `${brackets[0]}${items}${brackets[1]}`;
+            }
+            if (v.type === 'dict') {
+                const pairs = Object.entries(v.value).map(([k, val]) => `"${k}": ${formatVariableValue(val)}`).join(', ');
+                return `{${pairs}}`;
+            }
+            if (v.type === 'object') {
+                return `<${v.class} Node>`;
+            }
+            if (v.type === 'reference') {
+                return `<Link:${v.class} ID:${v.id.toString().substring(0,4)}>`;
+            }
+            return String(v.value || "None");
+        }
+
+        // Generate context annotations
+        function generateAnnotation(step, prevStep) {
+            if (!step) return "No active trace step.";
+            const lineText = sourceLines[step.line - 1] ? sourceLines[step.line - 1].trim() : "";
+            
+            if (step.event === 'return') {
+                const valStr = formatVariableValue(step.return_value);
+                return `Returning from function <span class="text-yellow-400 font-bold font-mono">${step.function}()</span> with value: <span class="text-green-400 font-mono font-bold">${valStr}</span>. Current stack frame layer is popped.`;
+            }
+            
+            if (lineText.startsWith('def ')) {
+                return `Function Header: Entering function execution space <span class="text-indigo-400 font-bold font-mono">${step.function}()</span>.`;
+            }
+            if (lineText.startsWith('return ')) {
+                return `Return Trigger: Preparing to return from function frame. Evaluating return expression on line ${step.line}.`;
+            }
+            if (lineText.includes('for ') && lineText.includes(' in ')) {
+                const loopVarMatch = lineText.match(/for\s+([a-zA-Z_][a-zA-Z0-9_]*)\s+in/);
+                const loopVar = loopVarMatch ? loopVarMatch[1] : '';
+                const currentVal = loopVar && step.variables[loopVar] ? formatVariableValue(step.variables[loopVar]) : 'undefined';
+                return `Loop Header: Iterating sequence loop on line ${step.line} with variable <span class="text-yellow-400 font-bold font-mono">${loopVar}</span> = <span class="text-green-400 font-mono font-bold">${currentVal}</span>.`;
+            }
+            if (lineText.includes('while ')) {
+                return `While Loop header: Evaluating conditional bounds on line ${step.line} to decide whether to execute loop body.`;
+            }
+            if (lineText.startsWith('if ') || lineText.includes('elif ')) {
+                return `Conditional statement: evaluating conditional branch test case on line ${step.line}.`;
+            }
+            if (lineText.includes('=')) {
+                const eqIdx = lineText.indexOf('=');
+                const leftSide = lineText.substring(0, eqIdx).trim();
+                const varMatch = leftSide.match(/([a-zA-Z_][a-zA-Z0-9_]*)$/);
+                const varName = varMatch ? varMatch[1] : leftSide;
+                const currentVal = step.variables[varName] ? formatVariableValue(step.variables[varName]) : '';
+                if (currentVal) {
+                    return `Assignment state: Mutating variable <span class="text-yellow-400 font-bold font-mono">${varName}</span> to evaluate value <span class="text-green-400 font-mono font-bold">${currentVal}</span>.`;
+                }
+            }
+            
+            return `Step execution: Running code statement <code class="bg-gray-900/60 px-1.5 py-0.5 rounded font-mono text-emerald-400 text-[11px]">${lineText}</code>.`;
+        }
+
+        // Detect linked structures
+        function detectLinkedStructure(variables) {
+            for (const name in variables) {
+                const v = variables[name];
+                if (v && v.type === 'object') {
+                    const keys = Object.keys(v.value);
+                    if (keys.includes('next') || keys.includes('left') || keys.includes('right') || keys.includes('val') || keys.includes('value')) {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+        // Check if variable has changed from previous step to trigger animation
+        function hasVariableMutated(varName, index) {
+            if (index === 0) return true; // Flash initially when added to stack
+            const currStep = executionTrace[index];
+            const prevStep = executionTrace[index - 1];
+            if (!currStep || !prevStep) return false;
+            const currVal = currStep.variables[varName];
+            const prevVal = prevStep.variables[varName];
+            if (!currVal) return false;
+            if (!prevVal) return true; // Newly instantiated variable
+            return formatVariableValue(currVal) !== formatVariableValue(prevVal);
+        }
+
+        // Trace values history path dynamically up to index bounds
+        function getVariableHistory(varName, maxIndex) {
+            const history = [];
+            for (let i = 0; i <= maxIndex; i++) {
+                const step = executionTrace[i];
+                if (!step) continue;
+                const v = step.variables[varName];
+                if (v) {
+                    const formatted = formatVariableValue(v);
+                    if (history.length === 0 || history[history.length - 1] !== formatted) {
+                        history.push(formatted);
+                    }
+                }
+            }
+            if (history.length > 4) {
+                return "..." + history.slice(-3).join(" ➔ ");
+            }
+            return history.join(" ➔ ");
+        }
+
+        // Render graphical variables inspector
+        function renderVariablesInspector(variables) {
+            const keys = Object.keys(variables);
+            if (!keys.length) {
+                return `<div class="text-gray-500 italic font-sans text-xs p-2">No active local variable scopes.</div>`;
+            }
+            
+            let html = `<div class="flex flex-col gap-4 font-mono text-xs">`;
+            
+            keys.forEach(name => {
+                const v = variables[name];
+                let valHtml = "";
+                
+                const isMutated = hasVariableMutated(name, currentStepIndex);
+                const flashClass = isMutated ? "animate-flash" : "";
+                const historyTrace = getVariableHistory(name, currentStepIndex);
+                
+                if (v.type === 'list' || v.type === 'tuple') {
+                    const is2D = v.value.length > 0 && v.value.every(item => item.type === 'list');
+                    
+                    if (is2D) {
+                        // Matrix Grid Layout
+                        valHtml += `<div class="overflow-auto max-w-full"><table class="border-collapse border border-gray-700 text-center text-xs">`;
+                        v.value.forEach(row => {
+                            valHtml += `<tr>`;
+                            row.value.forEach(cell => {
+                                const cellVal = formatVariableValue(cell);
+                                valHtml += `<td class="border border-gray-700 px-3 py-1.5 bg-gray-900 text-indigo-300 font-bold">${cellVal}</td>`;
+                            });
+                            valHtml += `</tr>`;
+                        });
+                        valHtml += `</table></div>`;
+                    } else if (name.toLowerCase().includes('stack')) {
+                        // Stack LIFO Visual Buckets
+                        valHtml += `<div class="flex flex-col-reverse border-2 border-dashed border-indigo-500/50 rounded-b-lg p-2 max-w-[120px] bg-gray-950/80 min-h-[100px] gap-1.5">`;
+                        if (v.value.length === 0) {
+                            valHtml += `<div class="text-[9px] text-gray-600 text-center select-none py-6">Empty Stack</div>`;
+                        } else {
+                            v.value.forEach((item, index) => {
+                                const itemVal = formatVariableValue(item);
+                                const isTop = index === v.value.length - 1;
+                                const itemBg = isTop ? 'bg-indigo-600 text-white' : 'bg-gray-800 text-gray-400';
+                                valHtml += `
+                                    <div class="border border-indigo-900 rounded p-1 text-center font-bold text-[11px] ${itemBg}">
+                                        ${itemVal} ${isTop ? '<span class="text-[8px] block text-yellow-300 font-sans">(Top)</span>' : ''}
+                                    </div>
+                                `;
+                            });
+                        }
+                        valHtml += `</div>`;
+                    } else if (name.toLowerCase().includes('queue')) {
+                        // Queue FIFO visual pipe
+                        valHtml += `<div class="flex items-center border-y-2 border-dashed border-emerald-500/50 p-2 bg-gray-950/80 min-h-[50px] gap-1.5 overflow-x-auto">`;
+                        if (v.value.length === 0) {
+                            valHtml += `<div class="text-[9px] text-gray-600 text-center select-none w-full">Empty Queue</div>`;
+                        } else {
+                            valHtml += `<div class="text-[9px] text-emerald-400 font-bold select-none pr-1 uppercase tracking-wider">Front ➔</div>`;
+                            v.value.forEach((item, index) => {
+                                const itemVal = formatVariableValue(item);
+                                const isFront = index === 0;
+                                const isBack = index === v.value.length - 1;
+                                let itemBg = 'bg-gray-800 text-gray-400';
+                                if (isFront) itemBg = 'bg-emerald-600 text-white';
+                                else if (isBack) itemBg = 'bg-teal-700 text-gray-200';
+                                
+                                valHtml += `
+                                    <div class="border border-emerald-900 rounded px-2.5 py-1 text-center font-bold text-[11px] flex-shrink-0 ${itemBg}">
+                                        ${itemVal}
+                                    </div>
+                                `;
+                            });
+                            valHtml += `<div class="text-[9px] text-teal-400 font-bold select-none pl-1 uppercase tracking-wider">➔ Back</div>`;
+                        }
+                        valHtml += `</div>`;
+                    } else {
+                        // Horizontal 1D Array Row
+                        valHtml += `<div class="flex items-center gap-1 overflow-x-auto py-1 max-w-full">`;
+                        v.value.forEach((item, index) => {
+                            const itemVal = formatVariableValue(item);
+                            valHtml += `
+                                <div class="border border-gray-700 bg-gray-950 rounded px-2.5 py-1 flex flex-col items-center min-w-[45px]">
+                                    <span class="text-[8px] text-gray-600 font-sans select-none">${index}</span>
+                                    <span class="font-bold text-emerald-400 text-[11px]">${itemVal}</span>
+                                </div>
+                            `;
+                        });
+                        valHtml += `</div>`;
+                    }
+                } else if (v.type === 'dict') {
+                    // Dictionaries Table
+                    valHtml += `<div class="flex flex-col border border-gray-800 rounded bg-gray-950 overflow-hidden max-w-sm">`;
+                    const entries = Object.entries(v.value);
+                    if (!entries.length) {
+                        valHtml += `<div class="p-2 text-gray-600 italic text-[11px]">Empty dict</div>`;
+                    } else {
+                        entries.forEach(([key, val]) => {
+                            const valStr = formatVariableValue(val);
+                            valHtml += `
+                                <div class="flex border-b border-gray-800 last:border-0 text-[11px]">
+                                    <div class="w-1/3 bg-gray-900/60 p-1.5 font-bold text-yellow-500 border-r border-gray-800">${key}</div>
+                                    <div class="w-2/3 p-1.5 text-emerald-400">${valStr}</div>
+                                </div>
+                            `;
+                        });
+                    }
+                    valHtml += `</div>`;
+                } else if (v.type === 'set') {
+                    // Set representation
+                    valHtml += `<div class="flex flex-wrap items-center gap-1 p-1.5 bg-gray-950 rounded border border-gray-800 max-w-sm">`;
+                    if (v.value.length === 0) {
+                        valHtml += `<span class="text-gray-600 italic text-[10px]">empty set</span>`;
+                    } else {
+                        valHtml += `<span class="text-gray-500 font-bold select-none text-[10px]">{</span>`;
+                        v.value.forEach((item, idx) => {
+                            const itemVal = formatVariableValue(item);
+                            valHtml += `<span class="bg-indigo-950/60 border border-indigo-900/80 rounded px-1.5 py-0.5 text-[10px] text-indigo-300 font-bold">${itemVal}</span>`;
+                            if (idx < v.value.length - 1) valHtml += `<span class="text-gray-700">,</span>`;
+                        });
+                        valHtml += `<span class="text-gray-500 font-bold select-none text-[10px]">}</span>`;
+                    }
+                    valHtml += `</div>`;
+                } else if (v.type === 'object') {
+                    // Custom object class inspection
+                    valHtml += `<div class="flex flex-col border border-indigo-900/60 rounded bg-gray-950 overflow-hidden max-w-sm">`;
+                    const entries = Object.entries(v.value);
+                    if (!entries.length) {
+                        valHtml += `<div class="p-2 text-gray-600 italic text-[11px]">Empty ${v.class} Object</div>`;
+                    } else {
+                        entries.forEach(([key, val]) => {
+                            const valStr = formatVariableValue(val);
+                            valHtml += `
+                                <div class="flex border-b border-indigo-900/20 last:border-0 text-[11px]">
+                                    <div class="w-1/3 bg-indigo-950/20 p-1.5 font-bold text-indigo-400 border-r border-indigo-900/20">${key}</div>
+                                    <div class="w-2/3 p-1.5 text-indigo-200">${valStr}</div>
+                                </div>
+                            `;
+                        });
+                    }
+                    valHtml += `</div>`;
+                } else if (v.type === 'reference') {
+                    valHtml += `<span class="text-indigo-400 bg-indigo-950/60 px-2 py-0.5 rounded border border-indigo-900/30 text-[10px]">🔗 Node ID: ${v.id.toString().substring(0,5)}</span>`;
+                } else {
+                    valHtml += `<span class="text-emerald-400 font-bold text-xs bg-gray-950 px-2 py-1 rounded border border-gray-900">${v.value}</span>`;
+                }
+
+                html += `
+                    <div class="bg-gray-900 border border-gray-800 rounded-lg p-2.5 flex flex-col transition-all duration-300 ${flashClass}">
+                        <div class="flex items-center justify-between border-b border-gray-800 pb-1 mb-2">
+                            <span class="text-yellow-400 font-bold text-xs">${name}</span>
+                            <span class="text-[9px] font-sans bg-gray-850 text-gray-400 px-1.5 py-0.5 rounded uppercase font-bold tracking-wider">${v.type === 'object' ? v.class : v.type}</span>
+                        </div>
+                        <div class="flex-1">
+                            ${valHtml}
+                        </div>
+                        <div class="mt-2 pt-1 border-t border-gray-800/40 text-[9px] text-gray-500 font-sans truncate">
+                            <span class="font-bold text-gray-600 uppercase tracking-wider select-none text-[8px] mr-1">History:</span> ${historyTrace}
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += `</div>`;
+            return html;
+        }
+
+        // Draw dynamic flowchart from AST metadata
+        function renderDynamicFlowTree(step) {
+            if (!layoutMetadata || !layoutMetadata.length) {
+                flowTreeView.innerHTML = '<div class="text-gray-500 italic text-xs">No flow layout blocks compiled.</div>';
+                return;
+            }
+            
+            let html = `<div class="flex flex-wrap items-center gap-2.5 w-full justify-center max-w-4xl font-mono text-[10px] p-1">`;
+            
+            layoutMetadata.forEach((meta, idx) => {
+                const isActive = step.line === meta.line;
+                const activeClass = isActive 
+                    ? "bg-indigo-600 border-indigo-400 font-bold text-white shadow-lg scale-105" 
+                    : "bg-gray-850 border-gray-700 text-gray-400 opacity-50";
+                    
+                let icon = "📝";
+                if (meta.type === "For" || meta.type === "While") icon = "🔁";
+                else if (meta.type === "If") icon = "🔀";
+                else if (meta.type === "Return") icon = "📤";
+                
+                html += `
+                    <div class="p-2.5 border rounded-lg flex flex-col gap-0.5 transition-all duration-150 min-w-[100px] max-w-[150px] text-center ${activeClass}">
+                        <span class="text-[8px] text-gray-500 font-bold uppercase tracking-wider">${icon} ${meta.type} (L${meta.line})</span>
+                        <div class="truncate font-bold" title="${meta.code}">${meta.code}</div>
+                    </div>
+                `;
+                
+                if (idx < layoutMetadata.length - 1) {
+                    html += `<div class="text-gray-600 font-bold text-base select-none">➔</div>`;
+                }
+            });
+            flowTreeView.innerHTML = html;
+        }
+
+        // Precalculate stable coordinates for memory nodes throughout the trace
+        function precalculateNodeCoordinates(trace) {
+            globalNodeCoords = {};
+            globalNodeMap = {};
+            isTraceTree = false;
+            isTraceLinkedList = false;
+            isTraceDoublyLinked = false;
+            const globalNodeOrder = [];
+            
+            trace.forEach(step => {
+                const stepSeenIds = new Set();
+                
+                function collectObjects(v) {
+                    if (!v || typeof v !== 'object') return;
+                    if (v.type === 'object') {
+                        const oid = parseInt(v.id);
+                        if (!stepSeenIds.has(oid)) {
+                            stepSeenIds.add(oid);
+                            
+                            const current = globalNodeMap[oid];
+                            const newLen = v.value ? Object.keys(v.value).length : -1;
+                            const oldLen = current && current.value ? Object.keys(current.value).length : -1;
+                            
+                            if (oldLen === -1 || newLen >= oldLen) {
+                                if (!globalNodeMap[oid]) {
+                                    globalNodeOrder.push(v);
+                                } else {
+                                    const idx = globalNodeOrder.indexOf(current);
+                                    if (idx !== -1) {
+                                        globalNodeOrder[idx] = v;
+                                    }
+                                }
+                                globalNodeMap[oid] = v;
+                            }
+                            
+                            if (v.value) {
+                                for (const attr in v.value) {
+                                    collectObjects(v.value[attr]);
+                                }
+                            }
+                        }
+                    } else if (v.type === 'list' || v.type === 'dict') {
+                        const vals = v.type === 'list' ? v.value : Object.values(v.value);
+                        vals.forEach(collectObjects);
+                    }
+                }
+                
+                for (const name in step.variables) {
+                    collectObjects(step.variables[name]);
+                }
+            });
+            
+            const nodeIds = Object.keys(globalNodeMap).map(id => parseInt(id));
+            if (!nodeIds.length) return;
+            
+            // Pro-Tip: Detect if any node in trace contains tree children pointers
+            isTraceTree = globalNodeOrder.some(node => {
+                const keys = Object.keys(node.value);
+                return keys.some(k => ['left', 'right', 'left_child', 'right_child', 'lc', 'rc'].includes(k.toLowerCase()));
+            });
+            
+            isTraceDoublyLinked = !isTraceTree && globalNodeOrder.some(node => {
+                const keys = Object.keys(node.value);
+                return keys.includes('next') && (keys.includes('prev') || keys.includes('previous'));
+            });
+            
+            isTraceLinkedList = !isTraceTree && !isTraceDoublyLinked && globalNodeOrder.some(node => {
+                const keys = Object.keys(node.value);
+                return keys.includes('next');
+            });
+            
+            if (isTraceTree) {
+                // Pyramid Tree Layout
+                const childIds = new Set();
+                globalNodeOrder.forEach(node => {
+                    const leftKey = Object.keys(node.value).find(k => ['left', 'left_child', 'lc'].includes(k.toLowerCase()));
+                    const rightKey = Object.keys(node.value).find(k => ['right', 'right_child', 'rc'].includes(k.toLowerCase()));
+                    
+                    if (leftKey && node.value[leftKey] && (node.value[leftKey].type === 'object' || node.value[leftKey].type === 'reference')) {
+                        childIds.add(parseInt(node.value[leftKey].id));
+                    }
+                    if (rightKey && node.value[rightKey] && (node.value[rightKey].type === 'object' || node.value[rightKey].type === 'reference')) {
+                        childIds.add(parseInt(node.value[rightKey].id));
+                    }
+                });
+                
+                const roots = nodeIds.filter(id => !childIds.has(id));
+                const mainRoot = roots.length > 0 ? roots[0] : nodeIds[0];
+                
+                const visitedLayout = new Set();
+                function layoutTree(nodeId, level, leftBound, rightBound) {
+                    if (!nodeId || !globalNodeMap[nodeId] || visitedLayout.has(nodeId)) return;
+                    visitedLayout.add(nodeId);
+                    
+                    const x = (leftBound + rightBound) / 2;
+                    const y = 45 + level * 50; // Descend Y axis per level
+                    globalNodeCoords[nodeId] = { x, y };
+                    
+                    const node = globalNodeMap[nodeId];
+                    const leftKey = Object.keys(node.value).find(k => ['left', 'left_child', 'lc'].includes(k.toLowerCase()));
+                    const rightKey = Object.keys(node.value).find(k => ['right', 'right_child', 'rc'].includes(k.toLowerCase()));
+                    
+                    let leftId = (leftKey && node.value[leftKey]) ? parseInt(node.value[leftKey].id) : null;
+                    if (leftId) layoutTree(leftId, level + 1, leftBound, x);
+                    
+                    let rightId = (rightKey && node.value[rightKey]) ? parseInt(node.value[rightKey].id) : null;
+                    if (rightId) layoutTree(rightId, level + 1, x, rightBound);
+                }
+                
+                layoutTree(mainRoot, 0, 30, 650 - 30);
+                
+                // Fallback coordinates for disconnected nodes
+                nodeIds.forEach((id, idx) => {
+                    if (!globalNodeCoords[id]) {
+                        globalNodeCoords[id] = { x: 50 + idx * 80, y: 175 };
+                    }
+                });
+            } else if (isTraceLinkedList || isTraceDoublyLinked) {
+                // Linear List Layout: follow .next pointers starting from heads (in-degree 0)
+                const nextTargetIds = new Set();
+                globalNodeOrder.forEach(node => {
+                    const nextKey = Object.keys(node.value).find(k => ['next', 'nxt'].includes(k.toLowerCase()));
+                    if (nextKey && node.value[nextKey] && (node.value[nextKey].type === 'object' || node.value[nextKey].type === 'reference')) {
+                        nextTargetIds.add(parseInt(node.value[nextKey].id));
+                    }
+                });
+                
+                let heads = nodeIds.filter(id => !nextTargetIds.has(id));
+                heads.sort((a, b) => a - b);
+                
+                // Perfect Closed Cycle Fallback: If in-degree has no 0, choose first referenced variable
+                if (heads.length === 0) {
+                    let fallbackHead = null;
+                    for (let i = 0; i < trace.length; i++) {
+                        for (const name in trace[i].variables) {
+                            const v = trace[i].variables[name];
+                            if (v && (v.type === 'object' || v.type === 'reference')) {
+                                fallbackHead = parseInt(v.id);
+                                break;
+                            }
+                        }
+                        if (fallbackHead !== null) break;
+                    }
+                    heads = [fallbackHead !== null ? fallbackHead : nodeIds[0]];
+                }
+                
+                const visitedLayout = new Set();
+                let xPosition = 85;
+                
+                function layoutList(nodeId) {
+                    if (!nodeId || !globalNodeMap[nodeId] || visitedLayout.has(nodeId)) return;
+                    visitedLayout.add(nodeId);
+                    
+                    globalNodeCoords[nodeId] = {
+                        x: xPosition,
+                        y: 120 // Flat horizontal line for linked list nodes
+                    };
+                    xPosition += 130;
+                    
+                    const node = globalNodeMap[nodeId];
+                    const nextKey = Object.keys(node.value).find(k => ['next', 'nxt'].includes(k.toLowerCase()));
+                    const nextId = (nextKey && node.value[nextKey]) ? parseInt(node.value[nextKey].id) : null;
+                    if (nextId) {
+                        layoutList(nextId);
+                    }
+                }
+                
+                heads.forEach(headId => {
+                    layoutList(headId);
+                });
+                
+                // Fallback for disconnected nodes
+                nodeIds.forEach(id => {
+                    if (!globalNodeCoords[id]) {
+                        layoutList(id);
+                    }
+                });
+            } else {
+                // Circular 2D Graph Layout
+                const centerX = 325;
+                const centerY = 110;
+                const radiusX = 175;
+                const radiusY = 65;
+                
+                // Find the first-discovered starting node to anchor it at the top
+                let startNodeId = null;
+                for (let i = 0; i < trace.length; i++) {
+                    for (const name in trace[i].variables) {
+                        const v = trace[i].variables[name];
+                        if (v && (v.type === 'object' || v.type === 'reference')) {
+                            startNodeId = parseInt(v.id);
+                            break;
+                        }
+                    }
+                    if (startNodeId !== null) break;
+                }
+                
+                // Sort remaining node IDs so the layout order is completely stable
+                const sortedIds = [...nodeIds].sort((a, b) => a - b);
+                if (startNodeId !== null && sortedIds.includes(startNodeId)) {
+                    // Put start node at index 0
+                    const sIdx = sortedIds.indexOf(startNodeId);
+                    sortedIds.splice(sIdx, 1);
+                    sortedIds.unshift(startNodeId);
+                }
+                
+                sortedIds.forEach((id, index) => {
+                    // Start from angle -PI/2 (top center) and lay out clockwise
+                    const angle = -Math.PI / 2 + index * (2 * Math.PI / sortedIds.length);
+                    globalNodeCoords[id] = {
+                        x: centerX + radiusX * Math.cos(angle),
+                        y: centerY + radiusY * Math.sin(angle)
+                    };
+                });
+            }
+        }
+
+        // Renders graph nodes via SVG Canvas (Linked Lists and Trees)
+        function renderLinkedStructureVisualizer(variables) {
+            const activeNodeIds = new Set();
+            
+            function markActive(v, stepSeen) {
+                if (!v || typeof v !== 'object') return;
+                if (v.type === 'object' || v.type === 'reference') {
+                    const oid = parseInt(v.id);
+                    if (!stepSeen.has(oid)) {
+                        stepSeen.add(oid);
+                        activeNodeIds.add(oid);
+                        
+                        const fullNode = globalNodeMap[oid];
+                        if (fullNode && fullNode.value) {
+                            for (const attr in fullNode.value) {
+                                markActive(fullNode.value[attr], stepSeen);
+                            }
+                        }
+                    }
+                } else if (v.type === 'list' || v.type === 'dict') {
+                    const vals = v.type === 'list' ? v.value : Object.values(v.value);
+                    vals.forEach(val => markActive(val, stepSeen));
+                }
+            }
+            
+            const stepSeen = new Set();
+            for (const name in variables) {
+                markActive(variables[name], stepSeen);
+            }
+            
+            const nodeIds = Object.keys(globalNodeMap).map(id => parseInt(id));
+            if (!nodeIds.length) {
+                return `<div class="text-gray-500 italic text-xs text-center py-8">Nodes not fully initialized.</div>`;
+            }
+
+            // Scan variables to establish BFS/DFS unvisited, frontier (queued), and visited states
+            const frontierIds = new Set();
+            const visitedVals = new Set();
+            const visitedIds = new Set();
+            
+            for (const name in variables) {
+                const v = variables[name];
+                if (!v) continue;
+                const lowercaseName = name.toLowerCase();
+                
+                // Identify frontier elements (queue, stack, q, etc.)
+                if (['queue', 'q', 'stack', 'frontier'].some(k => lowercaseName.includes(k))) {
+                    if (v.type === 'list' || v.type === 'set' || v.type === 'tuple') {
+                        v.value.forEach(item => {
+                            if (item) {
+                                if (item.type === 'object' || item.type === 'reference') {
+                                    frontierIds.add(parseInt(item.id));
+                                } else {
+                                    frontierIds.add(item.value);
+                                }
+                            }
+                        });
+                    }
+                }
+                
+                // Identify visited elements (visited, seen, visited_set, etc.)
+                if (['visited', 'seen', 'visited_set'].some(k => lowercaseName.includes(k))) {
+                    if (v.type === 'list' || v.type === 'set' || v.type === 'tuple') {
+                        v.value.forEach(item => {
+                            if (item) {
+                                if (item.type === 'object' || item.type === 'reference') {
+                                    visitedIds.add(parseInt(item.id));
+                                } else {
+                                    visitedVals.add(item.value);
+                                }
+                            }
+                        });
+                    } else if (v.type === 'dict') {
+                        Object.keys(v.value).forEach(k => {
+                            visitedVals.add(k);
+                            const valObj = v.value[k];
+                            if (valObj && (valObj.type === 'object' || valObj.type === 'reference')) {
+                                visitedIds.add(parseInt(valObj.id));
+                            }
+                        });
+                    }
+                }
+            }
+            
+            let currId = null;
+            let neighborId = null;
+            for (const name in variables) {
+                const v = variables[name];
+                if (v && (v.type === 'object' || v.type === 'reference')) {
+                    const ln = name.toLowerCase();
+                    if (['curr', 'node', 'root', 'current'].includes(ln)) {
+                        currId = parseInt(v.id);
+                    }
+                    if (['neighbor', 'child', 'nxt', 'next', 'temp', 'ptr'].includes(ln)) {
+                        neighborId = parseInt(v.id);
+                    }
+                }
+            }
+            
+            const svgWidth = 650;
+            const svgHeight = 220;
+            let svgContent = `<svg viewBox="0 0 ${svgWidth} ${svgHeight}" width="100%" height="100%" class="font-mono select-none">`;
+            
+            // Custom markers for arrows with dynamic circle boundary offsets (radius=18)
+            svgContent += `
+                <defs>
+                    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                        <path d="M 0 1 L 10 5 L 0 9 z" fill="#818cf8" />
+                    </marker>
+                    <marker id="arrow-red" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                        <path d="M 0 1 L 10 5 L 0 9 z" fill="#f43f5e" />
+                    </marker>
+                    <marker id="arrow-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                        <path d="M 0 1 L 10 5 L 0 9 z" fill="#10b981" />
+                    </marker>
+                    <marker id="arrow-purple" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                        <path d="M 0 1 L 10 5 L 0 9 z" fill="#a855f7" />
+                    </marker>
+                </defs>
+            `;
+            
+            // 1. Draw Fading Traversal Trail (DFS/BFS) in the background (drawn first)
+            const visitedPath = [];
+            for (let i = 0; i <= currentStepIndex; i++) {
+                const step = executionTrace[i];
+                if (!step) continue;
+                const activeName = Object.keys(step.variables).find(k => ['curr', 'node', 'root', 'curr_node', 'curr_root'].includes(k.toLowerCase()));
+                if (activeName) {
+                    const v = step.variables[activeName];
+                    if (v && (v.type === 'object' || v.type === 'reference')) {
+                        const oid = parseInt(v.id);
+                        if (visitedPath.length === 0 || visitedPath[visitedPath.length - 1] !== oid) {
+                            visitedPath.push(oid);
+                        }
+                    }
+                }
+            }
+            if (visitedPath.length > 1) {
+                for (let i = 0; i < visitedPath.length - 1; i++) {
+                    const ptA = globalNodeCoords[visitedPath[i]];
+                    const ptB = globalNodeCoords[visitedPath[i + 1]];
+                    if (ptA && ptB) {
+                        svgContent += `
+                            <line x1="${ptA.x}" y1="${ptA.y}" x2="${ptB.x}" y2="${ptB.y}" 
+                                  stroke="#10b981" stroke-width="6" opacity="0.25" stroke-linecap="round" />
+                        `;
+                    }
+                }
+            }
+            
+            // Draw Ground/None list variables block in bottom-left
+            const nullPointers = [];
+            for (const name in variables) {
+                const v = variables[name];
+                if (v && v.type === 'NoneType') {
+                    nullPointers.push(name);
+                }
+            }
+            if (nullPointers.length > 0) {
+                svgContent += `
+                    <g transform="translate(10, 185)">
+                        <rect x="0" y="0" width="130" height="24" rx="4" fill="#1f2937" stroke="#4b5563" stroke-width="1" stroke-dasharray="2,2" />
+                        <text x="65" y="10" fill="#9ca3af" font-size="7" font-weight="bold" text-anchor="middle">GROUND (None)</text>
+                        <text x="65" y="19" fill="#f43f5e" font-size="7" font-weight="bold" text-anchor="middle">${nullPointers.join(', ')}</text>
+                    </g>
+                `;
+            }
+            
+            // Draw Pointer Lines using precalculated globalNodeCoords and tangent trimming math
+            nodeIds.forEach(id => {
+                const from = globalNodeCoords[id];
+                if (!from) return;
+                const obj = globalNodeMap[id];
+                if (!obj || !obj.value) return;
+                
+                const drawLink = (childVal, typeLabel) => {
+                    if (childVal && (childVal.type === 'object' || childVal.type === 'reference')) {
+                        const toId = parseInt(childVal.id);
+                        if (globalNodeMap[toId]) {
+                            const to = globalNodeCoords[toId];
+                            if (to) {
+                                if (isTraceLinkedList) {
+                                    // Singly Linked list textbook box coordinates (radius offset is box width=46/height=22)
+                                    const startX = from.x + 11.5;
+                                    const startY = from.y;
+                                    const endX = to.x - 23;
+                                    const endY = to.y;
+                                    
+                                    if (from.x > to.x) {
+                                        // Curved back link (cycle)
+                                        const midX = (startX + endX) / 2;
+                                        const controlY = from.y - 45;
+                                        svgContent += `
+                                            <path d="M ${startX} ${startY - 11} Q ${midX} ${controlY} ${endX} ${endY}" 
+                                                  fill="none" stroke="#f43f5e" stroke-width="2" marker-end="url(#arrow-red)" stroke-dasharray="3,3" />
+                                            <text x="${midX}" y="${controlY + 12}" fill="#fda4af" font-size="7" text-anchor="middle" font-weight="bold">${typeLabel}</text>
+                                        `;
+                                    } else {
+                                        svgContent += `
+                                            <line x1="${startX}" y1="${startY}" x2="${endX}" y2="${endY}" 
+                                                  stroke="#6366f1" stroke-width="2" marker-end="url(#arrow)" />
+                                        `;
+                                    }
+                                } else if (isTraceDoublyLinked) {
+                                    // Doubly Linked list cards (prev dot at x-20, next dot at x+20)
+                                    if (typeLabel === 'next') {
+                                        const startX = from.x + 20;
+                                        const endX = to.x - 30;
+                                        const midX = (startX + endX) / 2;
+                                        svgContent += `
+                                            <path d="M ${startX} ${from.y} Q ${midX} ${from.y - 20} ${endX} ${to.y}" 
+                                                  fill="none" stroke="#6366f1" stroke-width="1.8" marker-end="url(#arrow)" />
+                                        `;
+                                    } else if (typeLabel === 'prev') {
+                                        const startX = from.x - 20;
+                                        const endX = to.x + 30;
+                                        const midX = (startX + endX) / 2;
+                                        svgContent += `
+                                            <path d="M ${startX} ${from.y} Q ${midX} ${from.y + 20} ${endX} ${to.y}" 
+                                                  fill="none" stroke="#f43f5e" stroke-width="1.8" marker-end="url(#arrow-red)" />
+                                        `;
+                                    }
+                                } else {
+                                    // Tree/Graph standard center-circumference layout (r=18)
+                                    const dx = to.x - from.x;
+                                    const dy = to.y - from.y;
+                                    const dist = Math.sqrt(dx*dx + dy*dy);
+                                    if (dist > 0) {
+                                        const startX = from.x + (dx / dist) * 18;
+                                        const startY = from.y + (dy / dist) * 18;
+                                        const endX = to.x - (dx / dist) * 18;
+                                        const endY = to.y - (dy / dist) * 18;
+                                        
+                                        // Retrieve node values to check visited status
+                                        let toValStr = "";
+                                        const targetObj = globalNodeMap[toId];
+                                        if (targetObj && targetObj.value) {
+                                            if (targetObj.value.val) toValStr = formatVariableValue(targetObj.value.val);
+                                            else if (targetObj.value.value) toValStr = formatVariableValue(targetObj.value.value);
+                                        }
+                                        
+                                        let fromValStr = "";
+                                        if (obj.value.val) fromValStr = formatVariableValue(obj.value.val);
+                                        else if (obj.value.value) fromValStr = formatVariableValue(obj.value.value);
+                                        
+                                        const fromVisited = visitedIds.has(id) || visitedVals.has(fromValStr) || visitedVals.has(Number(fromValStr));
+                                        const toVisited = visitedIds.has(toId) || visitedVals.has(toValStr) || visitedVals.has(Number(toValStr));
+                                        
+                                        // Check if this specific edge is currently being traversed between curr and neighbor
+                                        const isTraversingEdge = (id === currId && toId === neighborId) || (id === neighborId && toId === currId);
+                                        
+                                        let edgeStroke = '#4b5563'; // Gray unvisited edge
+                                        let edgeMarker = 'arrow';
+                                        let edgeWidth = 1.8;
+                                        
+                                        if (isTraversingEdge) {
+                                            edgeStroke = '#a855f7'; // Traversed edge is active purple glow
+                                            edgeMarker = 'arrow-purple';
+                                            edgeWidth = 3.2;
+                                        } else if (fromVisited && toVisited) {
+                                            edgeStroke = '#059669'; // Visited edge is green
+                                            edgeMarker = 'arrow-green';
+                                        } else if (fromVisited || toVisited) {
+                                            edgeStroke = '#818cf8'; // Frontier edge is indigo
+                                            edgeMarker = 'arrow';
+                                        }
+                                        
+                                        svgContent += `
+                                            <line x1="${startX}" y1="${startY}" x2="${endX}" y2="${endY}" 
+                                                  stroke="${edgeStroke}" stroke-width="${edgeWidth}" marker-end="url(#${edgeMarker})" />
+                                        `;
+                                        
+                                        const showLabel = isTraceTree || isTraceDoublyLinked || isTraceLinkedList;
+                                        if (showLabel) {
+                                            svgContent += `
+                                                <text x="${(startX + endX) / 2}" y="${(startY + endY) / 2 - 4}" 
+                                                      fill="#a5b4fc" font-size="8" text-anchor="middle" font-weight="bold">${typeLabel}</text>
+                                            `;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                };
+                
+                if (isTraceTree) {
+                    const leftKey = Object.keys(obj.value).find(k => ['left', 'left_child', 'lc'].includes(k.toLowerCase()));
+                    const rightKey = Object.keys(obj.value).find(k => ['right', 'right_child', 'rc'].includes(k.toLowerCase()));
+                    if (leftKey) drawLink(obj.value[leftKey], 'L');
+                    if (rightKey) drawLink(obj.value[rightKey], 'R');
+                } else if (isTraceDoublyLinked) {
+                    const nextKey = Object.keys(obj.value).find(k => ['next', 'nxt'].includes(k.toLowerCase()));
+                    const prevKey = Object.keys(obj.value).find(k => ['prev', 'previous', 'prv'].includes(k.toLowerCase()));
+                    if (nextKey) drawLink(obj.value[nextKey], 'next');
+                    if (prevKey) drawLink(obj.value[prevKey], 'prev');
+                } else if (isTraceLinkedList) {
+                    const nextKey = Object.keys(obj.value).find(k => ['next', 'nxt'].includes(k.toLowerCase())) || 'next';
+                    drawLink(obj.value[nextKey], 'next');
+                }
+
+                // Draw links for general graphs (like list of adjacent neighbors)
+                for (const key in obj.value) {
+                    const attrVal = obj.value[key];
+                    if (attrVal && attrVal.type === 'list') {
+                        attrVal.value.forEach((childVal, childIdx) => {
+                            if (childVal && (childVal.type === 'object' || childVal.type === 'reference')) {
+                                drawLink(childVal, `${key}[${childIdx}]`);
+                            }
+                        });
+                    } else if (attrVal && (attrVal.type === 'object' || attrVal.type === 'reference')) {
+                        if (!isTraceTree && !isTraceDoublyLinked && !isTraceLinkedList) {
+                            if (!['val', 'value'].includes(key.toLowerCase())) {
+                                drawLink(attrVal, key);
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // Draw Node Shapes and Floating arrow pointer cursors
+            nodeIds.forEach(id => {
+                const pt = globalNodeCoords[id];
+                if (!pt) return;
+                const obj = globalNodeMap[id];
+                if (!obj || !obj.value) return;
+                
+                let displayVal = "";
+                if (obj.value.val) displayVal = formatVariableValue(obj.value.val);
+                else if (obj.value.value) displayVal = formatVariableValue(obj.value.value);
+                else displayVal = id.toString().substring(0, 3);
+                
+                const ALLOWED_POINTER_NAMES = ['curr', 'node', 'root', 'curr_node', 'curr_root', 'current', 'neighbor', 'child', 'slow', 'fast', 'prev', 'next', 'nxt', 'temp', 'ptr', 'head', 'tail', 'p', 'q', 'i', 'j', 'left', 'right', 'top'];
+                
+                const pointers = [];
+                for (const name in variables) {
+                    const v = variables[name];
+                    if (v && (v.type === 'object' || v.type === 'reference') && parseInt(v.id) === id) {
+                        if (ALLOWED_POINTER_NAMES.includes(name.toLowerCase())) {
+                            pointers.push(name);
+                        }
+                    }
+                }
+                pointers.sort();
+                
+                let isCurrent = false;
+                let isNeighbor = false;
+                
+                pointers.forEach(name => {
+                    const ln = name.toLowerCase();
+                    if (['curr', 'node', 'root', 'current'].includes(ln)) {
+                        isCurrent = true;
+                    }
+                    if (['neighbor', 'child', 'nxt', 'next', 'temp', 'ptr'].includes(ln)) {
+                        isNeighbor = true;
+                    }
+                });
+                
+                const isFrontier = frontierIds.has(id);
+                const isVisited = visitedIds.has(id) || visitedVals.has(displayVal) || visitedVals.has(Number(displayVal));
+                
+                let circleStroke = '#6b7280'; // Unvisited bright gray border
+                let circleBg = '#1f2937'; // Slate background
+                let textFill = '#f3f4f6'; // Bright text
+                let strokeDash = '0';
+                let animateGlow = '';
+                
+                if (isCurrent) {
+                    circleStroke = '#fbbf24'; // Active current (yellow/gold)
+                    circleBg = '#78350f'; // Dark amber
+                    textFill = '#fef3c7';
+                    animateGlow = 'animate-pulse ring-2 ring-amber-500';
+                } else if (isNeighbor) {
+                    circleStroke = '#a855f7'; // Inspected neighbor (purple)
+                    circleBg = '#3b0764'; // Dark purple
+                    textFill = '#f3e8ff';
+                    animateGlow = 'animate-pulse';
+                } else if (isFrontier) {
+                    circleStroke = '#2dd4bf'; // Frontier/queued (teal)
+                    circleBg = '#0d2b26'; // Dark teal
+                    textFill = '#ccfbf1';
+                    strokeDash = '3,3'; // Dashed border
+                    animateGlow = 'animate-pulse';
+                } else if (isVisited) {
+                    circleStroke = '#059669'; // Visited (solid green)
+                    circleBg = '#064e3b'; // Dark green
+                    textFill = '#a7f3d0';
+                }
+                
+                if (isTraceLinkedList) {
+                    // Textbook splitting card [ value | next ]
+                    svgContent += `
+                        <g class="${animateGlow}">
+                            <rect x="${pt.x - 23}" y="${pt.y - 11}" width="46" height="22" rx="4" fill="${circleBg}" stroke="${circleStroke}" stroke-width="2" stroke-dasharray="${strokeDash}" />
+                            <line x1="${pt.x}" y1="${pt.y - 11}" x2="${pt.x}" y2="${pt.y + 11}" stroke="${circleStroke}" stroke-width="1.5" />
+                            <text x="${pt.x - 11.5}" y="${pt.y + 4}" fill="${textFill}" font-size="9" font-weight="bold" text-anchor="middle">${displayVal}</text>
+                            <circle cx="${pt.x + 11.5}" cy="${pt.y}" r="2.5" fill="#818cf8" />
+                        </g>
+                    `;
+                } else if (isTraceDoublyLinked) {
+                    // Textbook splitting card [ prev | value | next ]
+                    svgContent += `
+                        <g class="${animateGlow}">
+                            <rect x="${pt.x - 30}" y="${pt.y - 11}" width="60" height="22" rx="4" fill="${circleBg}" stroke="${circleStroke}" stroke-width="2" stroke-dasharray="${strokeDash}" />
+                            <line x1="${pt.x - 10}" y1="${pt.y - 11}" x2="${pt.x - 10}" y2="${pt.y + 11}" stroke="${circleStroke}" stroke-width="1.2" />
+                            <line x1="${pt.x + 10}" y1="${pt.y - 11}" x2="${pt.x + 10}" y2="${pt.y + 11}" stroke="${circleStroke}" stroke-width="1.2" />
+                            <circle cx="${pt.x - 20}" cy="${pt.y}" r="2.5" fill="#f43f5e" />
+                            <text x="${pt.x}" y="${pt.y + 4}" fill="${textFill}" font-size="9" font-weight="bold" text-anchor="middle">${displayVal}</text>
+                            <circle cx="${pt.x + 20}" cy="${pt.y}" r="2.5" fill="#818cf8" />
+                        </g>
+                    `;
+                } else {
+                    // Binary Tree standard round circle
+                    svgContent += `
+                        <g class="${animateGlow}">
+                            <circle cx="${pt.x}" cy="${pt.y}" r="18" fill="${circleBg}" stroke="${circleStroke}" stroke-width="2.5" stroke-dasharray="${strokeDash}" />
+                            <text x="${pt.x}" y="${pt.y + 4}" fill="${textFill}" font-size="9" font-weight="bold" text-anchor="middle">${displayVal}</text>
+                        </g>
+                    `;
+                }
+                
+                // Draw floating cursor pointer capsule hovering directly above the node shape
+                if (pointers.length > 0) {
+                    const labelText = pointers.join(' | ');
+                    const capWidth = Math.max(50, labelText.length * 6);
+                    const arrowOffset = isTraceDoublyLinked ? 34 : (isTraceLinkedList ? 34 : 28);
+                    const rectOffset = isTraceDoublyLinked ? 50 : (isTraceLinkedList ? 50 : 44);
+                    
+                    svgContent += `
+                        <g class="floating-cursor-tag">
+                            <line x1="${pt.x}" y1="${pt.y - arrowOffset}" x2="${pt.x}" y2="${pt.y - 20}" stroke="#fbbf24" stroke-width="1.5" marker-end="url(#arrow)" />
+                            <rect x="${pt.x - capWidth/2}" y="${pt.y - rectOffset}" width="${capWidth}" height="14" rx="3" fill="#1e1b4b" stroke="#fbbf24" stroke-width="1.2" />
+                            <text x="${pt.x}" y="${pt.y - rectOffset + 9}" fill="#fbbf24" font-size="7" font-weight="bold" text-anchor="middle">${labelText}</text>
+                        </g>
+                    `;
+                }
+            });
+            
+            svgContent += `</svg>`;
+            return svgContent;
+        }
+
+        // Render Stack structures vertically in Panel 3
+        function renderStackVisualizer(stackVar, name, variables) {
+            const svgWidth = 650;
+            const svgHeight = 220;
+            let svgContent = `<svg viewBox="0 0 ${svgWidth} ${svgHeight}" width="100%" height="100%" class="font-mono select-none">`;
+            
+            // Standard arrow markers
+            svgContent += `
+                <defs>
+                    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                        <path d="M 0 1 L 10 5 L 0 9 z" fill="#fbbf24" />
+                    </marker>
+                </defs>
+            `;
+            
+            // Draw Stack Tube container in the center
+            svgContent += `<path d="M 275 30 L 275 195 L 375 195 L 375 30" fill="none" stroke="#6366f1" stroke-width="2.5" stroke-dasharray="3,3" />`;
+            svgContent += `<line x1="270" y1="196" x2="380" y2="196" stroke="#4f46e5" stroke-width="3" />`;
+            svgContent += `<text x="325" y="210" fill="#6366f1" font-size="8" font-weight="bold" text-anchor="middle">LIFO STACK</text>`;
+            
+            // Scan variables for visited / frontier states
+            const frontierIds = new Set();
+            const visitedVals = new Set();
+            const visitedIds = new Set();
+            for (const key in variables) {
+                const v = variables[key];
+                if (!v) continue;
+                const lowercaseName = key.toLowerCase();
+                if (['queue', 'q', 'stack', 'frontier'].some(k => lowercaseName.includes(k))) {
+                    if (v.type === 'list' || v.type === 'set' || v.type === 'tuple') {
+                        v.value.forEach(item => {
+                            if (item) {
+                                if (item.type === 'object' || item.type === 'reference') frontierIds.add(parseInt(item.id));
+                                else frontierIds.add(item.value);
+                            }
+                        });
+                    }
+                }
+                if (['visited', 'seen', 'visited_set'].some(k => lowercaseName.includes(k))) {
+                    if (v.type === 'list' || v.type === 'set' || v.type === 'tuple') {
+                        v.value.forEach(item => {
+                            if (item) {
+                                if (item.type === 'object' || item.type === 'reference') visitedIds.add(parseInt(item.id));
+                                else visitedVals.add(item.value);
+                            }
+                        });
+                    }
+                }
+            }
+
+            const N = stackVar.value.length;
+            if (N === 0) {
+                svgContent += `<text x="325" y="115" fill="#4b5563" font-size="9" font-style="italic" text-anchor="middle">Empty Stack</text>`;
+            } else {
+                stackVar.value.forEach((item, index) => {
+                    const itemVal = formatVariableValue(item);
+                    const blockY = 195 - (index + 1) * 26 + 2;
+                    const isTop = index === N - 1;
+                    
+                    let isNewPush = false;
+                    if (currentStepIndex > 0 && isTop) {
+                        const prevStep = executionTrace[currentStepIndex - 1];
+                        const prevStack = prevStep.variables[name];
+                        if (prevStack && prevStack.value.length < N) {
+                            isNewPush = true;
+                        }
+                    }
+                    const blockClass = isNewPush ? "stack-block-push" : "";
+                    
+                    let isItemVisited = false;
+                    let isItemFrontier = false;
+                    if (item && (item.type === 'object' || item.type === 'reference')) {
+                        const oid = parseInt(item.id);
+                        isItemVisited = visitedIds.has(oid);
+                        isItemFrontier = frontierIds.has(oid);
+                    } else {
+                        isItemVisited = visitedVals.has(itemVal) || visitedVals.has(Number(itemVal));
+                    }
+                    
+                    let blockBg = "#111827";
+                    let blockStroke = "#4b5563";
+                    let blockText = "#9ca3af";
+                    
+                    if (isTop) {
+                        blockBg = "#78350f"; // Dark amber top
+                        blockStroke = "#fbbf24";
+                        blockText = "#fef3c7";
+                    } else if (isItemVisited) {
+                        blockBg = "#064e3b"; // Visited dark green
+                        blockStroke = "#10b981";
+                        blockText = "#a7f3d0";
+                    } else if (isItemFrontier) {
+                        blockBg = "#0d2b26"; // Frontier dark teal
+                        blockStroke = "#2dd4bf";
+                        blockText = "#ccfbf1";
+                    }
+                    
+                    svgContent += `
+                        <g class="${blockClass}">
+                            <rect x="280" y="${blockY}" width="90" height="22" rx="3" fill="${blockBg}" stroke="${blockStroke}" stroke-width="1.8" />
+                            <text x="325" y="${blockY + 14}" fill="${blockText}" font-size="9" font-weight="bold" text-anchor="middle">${itemVal}</text>
+                        </g>
+                    `;
+                });
+                
+                // Draw TOP pointer arrow next to the top element
+                const topY = 195 - N * 26 + 13;
+                svgContent += `
+                    <g>
+                        <line x1="220" y1="${topY}" x2="265" y2="${topY}" stroke="#fbbf24" stroke-width="1.5" marker-end="url(#arrow)" />
+                        <text x="210" y="${topY + 3}" fill="#fbbf24" font-size="8" font-weight="bold" text-anchor="end">TOP</text>
+                    </g>
+                `;
+            }
+            
+            svgContent += `</svg>`;
+            return svgContent;
+        }
+
+        // Render Queue structures horizontally in Panel 3
+        function renderQueueVisualizer(queueVar, name, variables) {
+            const svgWidth = 650;
+            const svgHeight = 220;
+            let svgContent = `<svg viewBox="0 0 ${svgWidth} ${svgHeight}" width="100%" height="100%" class="font-mono select-none">`;
+            
+            svgContent += `
+                <defs>
+                    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                        <path d="M 0 1 L 10 5 L 0 9 z" fill="#fbbf24" />
+                    </marker>
+                    <marker id="arrow-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                        <path d="M 0 1 L 10 5 L 0 9 z" fill="#10b981" />
+                    </marker>
+                </defs>
+            `;
+            
+            // Draw horizontal pipeline channel
+            svgContent += `<line x1="80" y1="90" x2="570" y2="90" stroke="#10b981" stroke-width="2" stroke-dasharray="3,3" />`;
+            svgContent += `<line x1="80" y1="130" x2="570" y2="130" stroke="#10b981" stroke-width="2" stroke-dasharray="3,3" />`;
+            
+            // Scan variables for visited / frontier states
+            const visitedVals = new Set();
+            const visitedIds = new Set();
+            let currValStr = "";
+            
+            for (const key in variables) {
+                const v = variables[key];
+                if (!v) continue;
+                const lowercaseName = key.toLowerCase();
+                if (['curr', 'node', 'root', 'current'].includes(lowercaseName)) {
+                    currValStr = formatVariableValue(v);
+                }
+                if (['visited', 'seen', 'visited_set'].some(k => lowercaseName.includes(k))) {
+                    if (v.type === 'list' || v.type === 'set' || v.type === 'tuple') {
+                        v.value.forEach(item => {
+                            if (item) {
+                                if (item.type === 'object' || item.type === 'reference') visitedIds.add(parseInt(item.id));
+                                else visitedVals.add(item.value);
+                            }
+                        });
+                    }
+                }
+            }
+
+            const N = queueVar.value.length;
+            if (N === 0) {
+                svgContent += `<text x="325" y="114" fill="#4b5563" font-size="9" font-style="italic" text-anchor="middle">Empty Queue</text>`;
+            } else {
+                queueVar.value.forEach((item, index) => {
+                    const itemVal = formatVariableValue(item);
+                    const blockX = 100 + index * 50;
+                    
+                    let isNewEnqueue = false;
+                    if (currentStepIndex > 0 && index === N - 1) {
+                        const prevStep = executionTrace[currentStepIndex - 1];
+                        const prevQueue = prevStep.variables[name];
+                        if (prevQueue && prevQueue.value.length < N) {
+                            isNewEnqueue = true;
+                        }
+                    }
+                    const blockClass = isNewEnqueue ? "queue-block-enqueue" : "";
+                    
+                    let isItemVisited = false;
+                    let isItemCurrent = (itemVal === currValStr);
+                    if (item && (item.type === 'object' || item.type === 'reference')) {
+                        const oid = parseInt(item.id);
+                        isItemVisited = visitedIds.has(oid);
+                    } else {
+                        isItemVisited = visitedVals.has(itemVal) || visitedVals.has(Number(itemVal));
+                    }
+                    
+                    let blockBg = "#0d2b26"; // Frontier dark teal by default (since it is in queue!)
+                    let blockStroke = "#2dd4bf"; // Teal
+                    let blockText = "#ccfbf1";
+                    
+                    if (isItemCurrent) {
+                        blockBg = "#78350f"; // Amber active
+                        blockStroke = "#fbbf24";
+                        blockText = "#fef3c7";
+                    } else if (isItemVisited) {
+                        blockBg = "#064e3b"; // Visited dark green
+                        blockStroke = "#10b981";
+                        blockText = "#a7f3d0";
+                    }
+                    
+                    svgContent += `
+                        <g class="${blockClass}">
+                            <rect x="${blockX}" y="95" width="42" height="30" rx="4" fill="${blockBg}" stroke="${blockStroke}" stroke-width="1.8" />
+                            <text x="${blockX + 21}" y="113" fill="${blockText}" font-size="9" font-weight="bold" text-anchor="middle">${itemVal}</text>
+                        </g>
+                    `;
+                });
+                
+                // Draw FRONT pointer pointing to index 0 (left)
+                svgContent += `
+                    <g>
+                        <line x1="121" y1="62" x2="121" y2="86" stroke="#10b981" stroke-width="1.5" marker-end="url(#arrow-green)" />
+                        <text x="121" y="52" fill="#10b981" font-size="8" font-weight="bold" text-anchor="middle">FRONT (OUT)</text>
+                    </g>
+                `;
+                
+                // Draw REAR pointer pointing to index N-1 (right)
+                const rearX = 100 + (N - 1) * 50 + 21;
+                svgContent += `
+                    <g>
+                        <line x1="${rearX}" y1="158" x2="${rearX}" y2="138" stroke="#fbbf24" stroke-width="1.5" marker-end="url(#arrow)" />
+                        <text x="${rearX}" y="170" fill="#fbbf24" font-size="8" font-weight="bold" text-anchor="middle">REAR (IN)</text>
+                    </g>
+                `;
+            }
+            
+            svgContent += `</svg>`;
+            return svgContent;
+        }
+
+        // Render standard arrays and floating pointer variable arrows in Panel 3
+        function renderArrayVisualizer(arrayVar, name, variables) {
+            const svgWidth = 650;
+            const svgHeight = 220;
+            let svgContent = `<svg viewBox="0 0 ${svgWidth} ${svgHeight}" width="100%" height="100%" class="font-mono select-none">`;
+            
+            svgContent += `
+                <defs>
+                    <marker id="arrow-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                        <path d="M 0 1 L 10 5 L 0 9 z" fill="#10b981" />
+                    </marker>
+                    <marker id="arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                        <path d="M 0 1 L 10 5 L 0 9 z" fill="#3b82f6" />
+                    </marker>
+                    <marker id="arrow-amber" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                        <path d="M 0 1 L 10 5 L 0 9 z" fill="#fbbf24" />
+                    </marker>
+                </defs>
+            `;
+            
+            const N = arrayVar.value.length;
+            const cellWidth = 42;
+            const cellSpacing = 8;
+            const totalWidth = N * (cellWidth + cellSpacing) - cellSpacing;
+            const startX = (650 - totalWidth) / 2;
+            
+            // 1. Check for sliding window range indexes dynamically (Pattern 2)
+            const leftWindowKey = Object.keys(variables).find(k => ['left', 'l', 'start', 'start_idx', 'window_start'].includes(k.toLowerCase()));
+            const rightWindowKey = Object.keys(variables).find(k => ['right', 'r', 'end', 'end_idx', 'window_end'].includes(k.toLowerCase()));
+            
+            let winL = leftWindowKey ? variables[leftWindowKey].value : null;
+            let winR = rightWindowKey ? variables[rightWindowKey].value : null;
+            
+            const hasSlidingWindow = (typeof winL === 'number' && typeof winR === 'number' && winL >= 0 && winR >= winL && winR < N);
+            
+            if (hasSlidingWindow) {
+                const winStartX = startX + winL * 50 - 4;
+                const winWidth = (winR - winL + 1) * 50;
+                // Draw glowing orange sliding window outline container (Pattern 2)
+                svgContent += `
+                    <g>
+                        <rect x="${winStartX}" y="85" width="${winWidth}" height="42" rx="6" fill="none" stroke="#f97316" stroke-width="2.5" stroke-dasharray="3,3" />
+                        <rect x="${winStartX}" y="85" width="${winWidth}" height="42" rx="6" fill="#f97316" opacity="0.04" />
+                        <text x="${winStartX + 4}" y="78" fill="#f97316" font-size="7" font-weight="bold">SLIDING WINDOW</text>
+                    </g>
+                `;
+            }
+            
+            // 2. Draw Array cells (Pattern 1 & 3)
+            arrayVar.value.forEach((item, index) => {
+                const itemVal = formatVariableValue(item);
+                const cellX = startX + index * 50;
+                
+                svgContent += `
+                    <g>
+                        <rect x="${cellX}" y="90" width="42" height="32" rx="4" fill="#111827" stroke="#4b5563" stroke-width="1.5" />
+                        <text x="${cellX + 21}" y="110" fill="#ffffff" font-size="10" font-weight="bold" text-anchor="middle">${itemVal}</text>
+                        <text x="${cellX + 21}" y="136" fill="#6b7280" font-size="8" text-anchor="middle">${index}</text>
+                    </g>
+                `;
+            });
+            
+            // 3. Draw Floating Cursors pointing to indices (Two Pointers & Binary Search)
+            // Define index targets mapping to variable names
+            const topPointers = {};
+            const bottomPointers = {};
+            
+            for (const name in variables) {
+                const v = variables[name];
+                if (v && v.type === 'int' && v.value >= 0 && v.value < N) {
+                    const idx = v.value;
+                    const lowercaseName = name.toLowerCase();
+                    
+                    if (['low', 'left', 'l', 'start', 'i'].includes(lowercaseName)) {
+                        if (!topPointers[idx]) topPointers[idx] = [];
+                        topPointers[idx].push(name);
+                    } else if (['high', 'right', 'r', 'end', 'j'].includes(lowercaseName)) {
+                        if (!bottomPointers[idx]) bottomPointers[idx] = [];
+                        bottomPointers[idx].push(name);
+                    } else if (['mid', 'm'].includes(lowercaseName)) {
+                        if (!topPointers[idx]) topPointers[idx] = [];
+                        topPointers[idx].push(name);
+                    }
+                }
+            }
+            
+            // Draw top pointers pointing down (L / Mid)
+            Object.keys(topPointers).forEach(idxStr => {
+                const idx = parseInt(idxStr);
+                const names = topPointers[idx];
+                const cellX = startX + idx * 50;
+                
+                // Color code pointers
+                let color = "#10b981"; // default green
+                let marker = "arrow-green";
+                if (names.some(n => n.toLowerCase().includes('mid') || n.toLowerCase() === 'm')) {
+                    color = "#fbbf24"; // amber for mid
+                    marker = "arrow-amber";
+                }
+                
+                svgContent += `
+                    <g class="floating-cursor-tag">
+                        <line x1="${cellX + 21}" y1="52" x2="${cellX + 21}" y2="84" stroke="${color}" stroke-width="1.5" marker-end="url(#${marker})" />
+                        <text x="${cellX + 21}" y="45" fill="${color}" font-size="8" font-weight="bold" text-anchor="middle">${names.join(', ')}</text>
+                    </g>
+                `;
+            });
+            
+            // Draw bottom pointers pointing up (R / High)
+            Object.keys(bottomPointers).forEach(idxStr => {
+                const idx = parseInt(idxStr);
+                const names = bottomPointers[idx];
+                const cellX = startX + idx * 50;
+                
+                const color = "#3b82f6"; // blue for high/right
+                const marker = "arrow-blue";
+                
+                svgContent += `
+                    <g class="floating-cursor-tag">
+                        <line x1="${cellX + 21}" y1="168" x2="${cellX + 21}" y2="136" stroke="${color}" stroke-width="1.5" marker-end="url(#${marker})" />
+                        <text x="${cellX + 21}" y="180" fill="${color}" font-size="8" font-weight="bold" text-anchor="middle">${names.join(', ')}</text>
+                    </g>
+                `;
+            });
+            
+            svgContent += `</svg>`;
+            return svgContent;
+        }
+
+        // Render dynamic panels switching based on variables contents
+        function renderDynamicPanel(step) {
+            const isRecursiveTrace = executionTrace.some(t => t.call_stack && t.call_stack.length > 1);
+            const hasLinkedStructure = detectLinkedStructure(step.variables);
+            
+            // Check for stack variables
+            const stackVarName = Object.keys(step.variables).find(k => k.toLowerCase().includes('stack') || k === 's');
+            const hasStackVar = stackVarName && step.variables[stackVarName].type === 'list';
+            
+            // Check for queue variables
+            const queueVarName = Object.keys(step.variables).find(k => k.toLowerCase().includes('queue') || k === 'q');
+            const hasQueueVar = queueVarName && step.variables[queueVarName].type === 'list';
+            
+            // Check for generic array/list variable
+            const arrayVarName = Object.keys(step.variables).find(k => step.variables[k].type === 'list');
+            const hasArrayVar = arrayVarName !== undefined;
+            
+            flowTreeView.classList.add('hidden');
+            stackFrameView.classList.add('hidden');
+            svgCanvasContainer.classList.add('hidden');
+            
+            if (hasLinkedStructure) {
+                dynamicPanelTitle.innerText = "3. Live Pointer & Memory Object Node Graph";
+                svgCanvasContainer.classList.remove('hidden');
+                svgCanvasContainer.innerHTML = renderLinkedStructureVisualizer(step.variables);
+            } else if (hasStackVar) {
+                dynamicPanelTitle.innerText = `3. Live LIFO Stack Visualizer (${stackVarName})`;
+                svgCanvasContainer.classList.remove('hidden');
+                svgCanvasContainer.innerHTML = renderStackVisualizer(step.variables[stackVarName], stackVarName, step.variables);
+            } else if (hasQueueVar) {
+                dynamicPanelTitle.innerText = `3. Live FIFO Queue Visualizer (${queueVarName})`;
+                svgCanvasContainer.classList.remove('hidden');
+                svgCanvasContainer.innerHTML = renderQueueVisualizer(step.variables[queueVarName], queueVarName, step.variables);
+            } else if (hasArrayVar) {
+                dynamicPanelTitle.innerText = `3. Live Array & Pointer Visualizer (${arrayVarName})`;
+                svgCanvasContainer.classList.remove('hidden');
+                svgCanvasContainer.innerHTML = renderArrayVisualizer(step.variables[arrayVarName], arrayVarName, step.variables);
+            } else if (isRecursiveTrace) {
+                dynamicPanelTitle.innerText = "3. Memory Call Stack Inspector (Function Layers)";
+                stackFrameView.classList.remove('hidden');
+                
+                if (step.call_stack && step.call_stack.length > 0) {
+                    stackFrameView.innerHTML = step.call_stack.map((name, index) => {
+                        const isTopFrame = index === step.call_stack.length - 1;
+                        const isReturnEvent = step.event === 'return' && isTopFrame;
+                        
+                        let frameColor = "bg-gray-800/80 border-gray-700 text-gray-400 opacity-60";
+                        let returnTag = "";
+                        
+                        if (isTopFrame) {
+                            if (isReturnEvent) {
+                                frameColor = "bg-emerald-950 border-emerald-500 text-emerald-200 shadow-lg shadow-emerald-500/20 font-bold animate-pulse";
+                                const retVal = formatVariableValue(step.return_value);
+                                returnTag = `<span class="text-[9px] bg-emerald-800 text-white px-2 py-0.5 rounded ml-2 font-bold select-none">Returns: ${retVal} ↩</span>`;
+                            } else {
+                                frameColor = "bg-indigo-600 border-indigo-400 text-white shadow-md shadow-indigo-500/10 font-bold";
+                            }
+                        }
+
+                        return `
+                            <div class="w-full max-w-md p-2 border rounded-lg flex justify-between items-center font-mono text-[11px] transition-all duration-150 ${frameColor}">
+                                <span>📂 Function Frame: <b class="text-yellow-400">${name}()</b>${returnTag}</span>
+                                <span class="text-[9px] bg-black/30 px-1.5 py-0.5 rounded text-gray-300">Layer ${index + 1} ${isTopFrame ? '◀' : ''}</span>
+                            </div>
+                        `;
+                    }).join('');
+                }
+            } else {
+                dynamicPanelTitle.innerText = "3. Live Control-Flow Execution Map";
+                flowTreeView.classList.remove('hidden');
+                renderDynamicFlowTree(step);
+            }
+        }
+
+        // Master UI Step State Updater
+        function renderCurrentStep() {
+            if (!executionTrace.length) return;
+            const step = executionTrace[currentStepIndex];
+            const prevStep = currentStepIndex > 0 ? executionTrace[currentStepIndex - 1] : null;
+            
+            // Navigation indicators
+            stepCounter.innerText = `Step: ${currentStepIndex + 1}/${executionTrace.length}`;
+            currentLineTag.innerText = `Line: ${step.line}`;
+
+            // Generate explanations
+            annotationText.innerHTML = generateAnnotation(step, prevStep);
+
+            // Render variable boxes
+            canvas.innerHTML = renderVariablesInspector(step.variables);
+
+            // Highlight active line inside CodeMirror directly (replaces separate tracking panel)
+            if (typeof CodeMirror !== 'undefined' && editor && editor.addLineClass) {
+                if (lastHighlightedLine !== null) {
+                    editor.removeLineClass(lastHighlightedLine, 'background', 'active-line-highlight');
+                }
+                const currentLineIndex = step.line - 1;
+                if (currentLineIndex >= 0 && currentLineIndex < editor.lineCount()) {
+                    editor.addLineClass(currentLineIndex, 'background', 'active-line-highlight');
+                    lastHighlightedLine = currentLineIndex;
+                    // Smoothly scroll the line into viewport center
+                    editor.scrollIntoView({line: currentLineIndex, ch: 0}, 150);
+                }
+            }
+
+            // Highlight editor line tracking (Panel 1)
+            if (codeTrackerContainer) {
+                codeTrackerContainer.innerHTML = sourceLines.map((lineText, idx) => {
+                    const lineNum = idx + 1;
+                    const isActive = lineNum === step.line;
+                    const activeRowClass = isActive 
+                        ? "bg-indigo-950 text-indigo-300 font-bold border-l-4 border-indigo-500 pl-2" 
+                        : "text-gray-400 pl-3";
+
+                    return `
+                        <div class="flex items-center w-full py-0.5 leading-relaxed rounded transition-all duration-100 ${activeRowClass}">
+                            <span class="w-8 inline-block select-none text-gray-600 text-right pr-3 font-sans text-xs">${lineNum}</span>
+                            <span>${lineText.replace(/ /g, '&nbsp;')}</span>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            // Build Panel 3 Hybrid state
+            renderDynamicPanel(step);
+
+            // Navigation Controls State
+            slider.value = currentStepIndex;
+            btnPrev.disabled = currentStepIndex === 0;
+            btnNext.disabled = currentStepIndex === executionTrace.length - 1;
+        }
+    </script>
+</body>
+</html>
