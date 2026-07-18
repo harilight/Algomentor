@@ -1,0 +1,1062 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Recommendations | AlgoMentor</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+
+    <style>
+        :root {
+            --bg-main: #f8fafc;
+            --bg-sidebar: #ffffff;
+            --text-primary: #0f172a;
+            --text-secondary: #64748b;
+            --text-muted: #94a3b8;
+            --orange: #FF6B00;
+            --orange-hover: #e05e00;
+            --orange-glow: rgba(255, 107, 0, 0.22);
+            --orange-light: rgba(255, 107, 0, 0.08);
+            --card-bg: #ffffff;
+            --border-color: #e2e8f0;
+            --shadow-sm: 0 2px 8px rgba(15, 23, 42, 0.04);
+            --shadow-md: 0 8px 24px -4px rgba(15, 23, 42, 0.08);
+            --shadow-lg: 0 16px 40px -8px rgba(15, 23, 42, 0.12);
+            --radius: 18px;
+            --transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            --easy: #10b981;
+            --medium: #f59e0b;
+            --hard: #ef4444;
+        }
+
+        body.recommendations-body {
+            background-color: var(--bg-main) !important;
+            color: var(--text-primary) !important;
+            display: flex;
+            min-height: 100vh;
+            margin: 0;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+
+        /* Sidebar Styling (Exact 260px Match) */
+        .sidebar {
+            width: 260px;
+            background: var(--bg-sidebar) !important;
+            border-right: 1px solid var(--border-color) !important;
+            display: flex;
+            flex-direction: column;
+            padding: 2rem 1.5rem !important;
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            z-index: 90;
+        }
+
+        .sidebar .logo {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--text-primary) !important;
+            margin-bottom: 3rem !important;
+            padding-left: 0;
+        }
+
+        .sidebar .logo span {
+            color: var(--orange) !important;
+        }
+
+        .sidebar ul {
+            list-style: none;
+            padding: 0 !important;
+            margin: 0 !important;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .sidebar ul li {
+            padding: 0.85rem 1.2rem;
+            border-radius: 14px;
+            font-weight: 600;
+            color: var(--text-secondary) !important;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            transition: all 0.25s ease;
+        }
+
+        .sidebar ul li i {
+            font-size: 1.1rem;
+            width: 22px;
+            text-align: center;
+        }
+
+        .sidebar ul li:hover {
+            background: var(--orange-light) !important;
+            color: var(--orange) !important;
+            transform: translateX(3px);
+        }
+
+        .sidebar ul li.active {
+            background: var(--orange) !important;
+            color: #ffffff !important;
+            box-shadow: 0 4px 14px rgba(255, 107, 0, 0.28);
+        }
+
+        /* Main Content Area */
+        .rec-main {
+            flex: 1;
+            margin-left: 260px;
+            padding: 38px 45px;
+            max-width: 1440px;
+        }
+
+        .rec-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 32px;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .rec-header h1 {
+            font-size: 2.2rem;
+            font-weight: 900;
+            color: var(--text-primary);
+            margin: 0 0 8px 0;
+            letter-spacing: -0.8px;
+        }
+
+        .rec-header p {
+            color: var(--text-secondary);
+            font-size: 1.02rem;
+            margin: 0;
+            max-width: 760px;
+            line-height: 1.6;
+            font-weight: 500;
+        }
+
+        /* KPI Cards Section */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+            gap: 18px;
+            margin-bottom: 36px;
+        }
+
+        .kpi-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 22px 26px;
+            box-shadow: var(--shadow-sm);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: all 0.3s ease;
+        }
+
+        .kpi-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-md);
+            border-color: rgba(255, 107, 0, 0.35);
+        }
+
+        .kpi-info h4 {
+            margin: 0;
+            font-size: 1.8rem;
+            font-weight: 900;
+            color: var(--text-primary);
+        }
+
+        .kpi-info p {
+            margin: 4px 0 0 0;
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+        }
+
+        .kpi-icon {
+            width: 52px;
+            height: 52px;
+            border-radius: 14px;
+            background: var(--orange-light);
+            color: var(--orange);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+        }
+
+        /* TODAY'S MISSION SECTION (Point #4) */
+        .mission-section {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            border-radius: 22px;
+            padding: 34px 38px;
+            color: #ffffff;
+            box-shadow: 0 20px 45px -15px rgba(15, 23, 42, 0.3);
+            margin-bottom: 44px;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .mission-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .mission-header h2 {
+            font-size: 1.6rem;
+            font-weight: 900;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: #ffffff;
+        }
+
+        .mission-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+            gap: 20px;
+        }
+
+        .mission-card {
+            background: rgba(255, 255, 255, 0.07);
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            border-radius: 16px;
+            padding: 22px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .mission-card:hover {
+            background: rgba(255, 255, 255, 0.11);
+            border-color: var(--orange);
+            transform: translateY(-5px);
+        }
+
+        .slot-title-badge {
+            font-size: 0.78rem;
+            font-weight: 800;
+            padding: 5px 12px;
+            border-radius: 20px;
+            background: rgba(255, 107, 0, 0.25);
+            color: #ff9e59;
+            border: 1px solid rgba(255, 107, 0, 0.4);
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            text-transform: uppercase;
+        }
+
+        .mission-prob-title {
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: #ffffff;
+            margin: 12px 0 6px 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .mission-goal {
+            font-size: 0.88rem;
+            color: #cbd5e1;
+            line-height: 1.5;
+            margin-bottom: 16px;
+        }
+
+        /* Filter Tabs */
+        .filter-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 28px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .filter-tabs {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .filter-tab {
+            padding: 11px 22px;
+            border-radius: 30px;
+            background: #ffffff;
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            font-weight: 700;
+            font-size: 0.9rem;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 9px;
+            transition: all 0.25s ease;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .filter-tab:hover {
+            border-color: var(--orange);
+            color: var(--orange);
+            transform: translateY(-2px);
+        }
+
+        .filter-tab.active {
+            background: var(--text-primary);
+            color: #ffffff;
+            border-color: var(--text-primary);
+            box-shadow: 0 6px 18px rgba(15, 23, 42, 0.22);
+        }
+
+        /* RECOMMENDATION CARDS GRID */
+        .rec-grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(430px, 1fr));
+            gap: 26px;
+            margin-bottom: 48px;
+        }
+
+        .rec-card-interactive {
+            background: var(--card-bg);
+            border: 1.5px solid var(--border-color);
+            border-radius: var(--radius);
+            padding: 26px 28px;
+            box-shadow: var(--shadow-md);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+            z-index: 1;
+        }
+
+        .rec-card-interactive.reason-WEAKNESS_RESCUE { border-top: 4px solid #ef4444; }
+        .rec-card-interactive.reason-SKILL_GAP_FRONTIER { border-top: 4px solid #3b82f6; }
+        .rec-card-interactive.reason-SPACED_REVISION { border-top: 4px solid #8b5cf6; }
+        .rec-card-interactive.reason-CONTEXT_MOMENTUM { border-top: 4px solid #10b981; }
+
+        .rec-card-interactive:hover {
+            transform: translateY(-8px) scale(1.015);
+            box-shadow: 0 22px 45px -12px rgba(15, 23, 42, 0.16);
+            border-color: var(--orange);
+        }
+
+        .rec-card-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .reason-badge {
+            font-size: 0.78rem;
+            font-weight: 800;
+            padding: 6px 14px;
+            border-radius: 20px;
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            text-transform: uppercase;
+        }
+        .badge-weakness { background: rgba(239, 68, 68, 0.12); color: #dc2626; border: 1px solid rgba(239, 68, 68, 0.25); }
+        .badge-frontier { background: rgba(59, 130, 246, 0.12); color: #2563eb; border: 1px solid rgba(59, 130, 246, 0.25); }
+        .badge-revision { background: rgba(139, 92, 246, 0.12); color: #7c3aed; border: 1px solid rgba(139, 92, 246, 0.25); }
+        .badge-momentum { background: rgba(16, 185, 129, 0.12); color: #059669; border: 1px solid rgba(16, 185, 129, 0.25); }
+        .badge-complexity { background: rgba(234, 179, 8, 0.15); color: #d97706; border: 1px solid rgba(234, 179, 8, 0.35); }
+        .badge-default { background: var(--orange-light); color: var(--orange); border: 1px solid rgba(255, 107, 0, 0.25); }
+
+        .prob-id-badge {
+            background: #f1f5f9;
+            color: var(--text-secondary);
+            font-weight: 800;
+            font-size: 0.8rem;
+            padding: 4px 10px;
+            border-radius: 8px;
+            font-family: monospace;
+        }
+
+        .rec-prob-title {
+            font-size: 1.35rem;
+            font-weight: 800;
+            color: var(--text-primary);
+            margin: 0 0 12px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: color 0.2s ease;
+        }
+
+        .rec-card-interactive:hover .rec-prob-title {
+            color: var(--orange);
+        }
+
+        .prob-meta-pills {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 18px;
+            flex-wrap: wrap;
+        }
+
+        .meta-pill {
+            background: #f8fafc;
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+            font-weight: 700;
+            padding: 5px 12px;
+            border-radius: 8px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .diff-tag {
+            font-size: 0.8rem;
+            font-weight: 800;
+            padding: 5px 14px;
+            border-radius: 8px;
+            text-transform: uppercase;
+        }
+        .diff-tag.easy { background: #d1fae5; color: #065f46; border: 1px solid #a7f3d0; }
+        .diff-tag.medium { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
+        .diff-tag.hard { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
+
+        /* AI Diagnosis & Confidence Meter Container (`Point #8, #11`) */
+        .ai-diagnosis-container {
+            background: linear-gradient(135deg, rgba(255, 107, 0, 0.05) 0%, rgba(248, 250, 252, 0.8) 100%);
+            border: 1px solid rgba(255, 107, 0, 0.18);
+            border-left: 4px solid var(--orange);
+            border-radius: 12px;
+            padding: 16px 18px;
+            margin-bottom: 20px;
+        }
+
+        .diagnosis-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.78rem;
+            font-weight: 800;
+            color: var(--orange);
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            margin-bottom: 8px;
+        }
+
+        .diagnosis-text {
+            font-size: 0.9rem;
+            color: var(--text-primary);
+            line-height: 1.55;
+            font-weight: 500;
+        }
+
+        .confidence-meter-box {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px dashed rgba(255, 107, 0, 0.2);
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: var(--text-secondary);
+        }
+
+        .conf-bar-bg {
+            flex: 1;
+            height: 6px;
+            background: #e2e8f0;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .conf-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #10b981 0%, #3b82f6 100%);
+            border-radius: 10px;
+        }
+
+        .rec-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 1px solid #f1f5f9;
+            padding-top: 16px;
+            margin-top: auto;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        /* Feedback Buttons Loop (`Point #12`) */
+        .feedback-box {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+
+        .feedback-btn {
+            background: #f1f5f9;
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            padding: 6px 10px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .feedback-btn:hover {
+            background: var(--orange-light);
+            color: var(--orange);
+            border-color: var(--orange);
+        }
+
+        .feedback-btn.active-useful {
+            background: #d1fae5 !important;
+            color: #065f46 !important;
+            border-color: #10b981 !important;
+        }
+
+        .feedback-btn.active-hard {
+            background: #fee2e2 !important;
+            color: #991b1b !important;
+            border-color: #ef4444 !important;
+        }
+
+        .launch-btn {
+            background: linear-gradient(135deg, var(--orange) 0%, #ea580c 100%);
+            color: #ffffff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: var(--transition);
+            box-shadow: 0 6px 16px rgba(255, 107, 0, 0.3);
+        }
+
+        .rec-card-interactive:hover .launch-btn {
+            background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%);
+            transform: translateX(4px);
+            box-shadow: 0 8px 22px rgba(255, 107, 0, 0.42);
+        }
+
+        /* Diagnostic Prerequisite Section */
+        .diag-section {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 32px 36px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .diag-section h2 {
+            font-size: 1.5rem;
+            font-weight: 900;
+            margin: 0 0 8px 0;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .diag-section p {
+            color: var(--text-secondary);
+            font-size: 0.96rem;
+            margin: 0 0 24px 0;
+        }
+
+        .topic-mastery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 18px;
+        }
+
+        .topic-mastery-card {
+            background: #f8fafc;
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: 18px;
+            transition: all 0.25s ease;
+        }
+
+        .topic-mastery-card:hover {
+            border-color: var(--orange);
+            background: #ffffff;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .tm-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .tm-name {
+            font-weight: 800;
+            font-size: 0.95rem;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .tm-score {
+            font-weight: 900;
+            font-size: 0.9rem;
+            color: var(--orange);
+        }
+
+        .tm-bar-bg {
+            height: 8px;
+            background: #e2e8f0;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .tm-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--orange) 0%, #ea580c 100%);
+            border-radius: 10px;
+            transition: width 1s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        @media (max-width: 900px) {
+            body { flex-direction: column; }
+            .sidebar { width: 100%; height: auto; position: relative; }
+            .rec-main { margin-left: 0; width: 100%; padding: 22px; }
+            .rec-grid-container { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+
+<body class="recommendations-body animate__animated animate__fadeIn">
+
+    <aside class="sidebar">
+        <div class="logo">
+            Algo<span>Mentor</span>
+        </div>
+        <ul>
+            <li onclick="window.location.href='dashboard.html'">
+                <i class="fas fa-columns"></i>
+                Dashboard
+            </li>
+            <li onclick="window.location.href='problems.html'">
+                <i class="fas fa-code"></i>
+                Problems
+            </li>
+            <li onclick="window.location.href='progress.html'">
+                <i class="fas fa-chart-bar"></i>
+                Progress
+            </li>
+            <li>
+                <i class="fas fa-robot"></i>
+                AI Mentor
+            </li>
+            <li class="active" onclick="window.location.href='recommendations.html'">
+                <i class="fas fa-lightbulb"></i>
+                Recommendations
+            </li>
+            <li onclick="window.location.href='visualizer.html'">
+                <i class="fas fa-magic"></i>
+                Visualizer Engine
+            </li>
+            <li onclick="window.location.href='profile.html'">
+                <i class="fas fa-user-circle"></i>
+                Profile
+            </li>
+            <li onclick="logout()">
+                <i class="fas fa-sign-out-alt"></i>
+                Logout
+            </li>
+        </ul>
+    </aside>
+
+    <main class="rec-main">
+        <header class="rec-header">
+            <div>
+                <h1>Unified Multi-Attribute AI Candidate Scorer</h1>
+                <p>Features Ebbinghaus Spaced Repetition Decay ($R_t = e^{-\lambda \Delta t}$), 32+ Micro-Pattern DAGs, and Candidate Vector Ranking. Zero blind guessing.</p>
+            </div>
+            <div>
+                <button onclick="fetchRecommendations()" class="launch-btn" style="background: #0f172a; box-shadow: 0 4px 14px rgba(15, 23, 42, 0.25);">
+                    <i class="fas fa-sync-alt animate__animated animate__rotateIn"></i> Refresh Diagnostics
+                </button>
+            </div>
+        </header>
+
+        <!-- KPI Cards Section -->
+        <section class="kpi-grid">
+            <div class="kpi-card">
+                <div class="kpi-info">
+                    <h4 id="kpiRecCount">-</h4>
+                    <p>Scored Candidates</p>
+                </div>
+                <div class="kpi-icon"><i class="fas fa-bullseye"></i></div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-info">
+                    <h4 id="kpiMasteredCount">-</h4>
+                    <p>Patterns Mastered</p>
+                </div>
+                <div class="kpi-icon" style="color: #10b981; background: #d1fae5;"><i class="fas fa-trophy"></i></div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-info">
+                    <h4 id="kpiFrontierCount">-</h4>
+                    <p>Frontier Unlocks</p>
+                </div>
+                <div class="kpi-icon" style="color: #3b82f6; background: #dbeafe;"><i class="fas fa-bolt"></i></div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-info">
+                    <h4 id="kpiAccuracy">-</h4>
+                    <p>Overall Accuracy</p>
+                </div>
+                <div class="kpi-icon" style="color: #f59e0b; background: #fef3c7;"><i class="fas fa-percentage"></i></div>
+            </div>
+        </section>
+
+        <!-- TODAY'S MISSION SECTION (Point #4) -->
+        <section class="mission-section" id="todaysMissionContainer">
+            <div class="mission-header">
+                <h2><i class="fas fa-flag-checkered" style="color: var(--orange);"></i> Today's Mission Roadmap</h2>
+                <span style="font-size: 0.88rem; color: #cbd5e1; font-weight: 600;">Complete these 5 curated milestones for optimal placement readiness</span>
+            </div>
+            <div class="mission-grid" id="todaysMissionGrid">
+                <div style="grid-column: 1/-1; text-align: center; padding: 30px; color: #cbd5e1;">Loading today's mission...</div>
+            </div>
+        </section>
+
+        <!-- Filter Tabs Section -->
+        <div class="filter-section">
+            <div class="filter-tabs">
+                <button class="filter-tab active" onclick="filterRecommendations('all', this)">
+                    <i class="fas fa-layer-group"></i> All Candidates
+                </button>
+                <button class="filter-tab" onclick="filterRecommendations('WEAKNESS', this)">
+                    <i class="fas fa-tools" style="color: #ef4444;"></i> Weakness Repair
+                </button>
+                <button class="filter-tab" onclick="filterRecommendations('SKILL_GAP', this)">
+                    <i class="fas fa-bolt" style="color: #3b82f6;"></i> Frontier Unlocks
+                </button>
+                <button class="filter-tab" onclick="filterRecommendations('SPACED_REVISION', this)">
+                    <i class="fas fa-sync" style="color: #8b5cf6;"></i> Spaced Revision
+                </button>
+                <button class="filter-tab" onclick="filterRecommendations('CONTEXT', this)">
+                    <i class="fas fa-fire" style="color: #10b981;"></i> Flow Momentum
+                </button>
+            </div>
+            <div style="font-size: 0.88rem; color: var(--text-secondary); font-weight: 600;">
+                <i class="fas fa-info-circle" style="color: var(--orange);"></i> Click card to launch problem workspace • Rate 👍/👎 to train future ML layer
+            </div>
+        </div>
+
+        <!-- Recommendations Interactive Cards Container -->
+        <section class="rec-grid-container" id="recGridContainer">
+            <div style="grid-column: 1/-1; text-align: center; padding: 70px 20px; color: var(--text-secondary);">
+                <i class="fas fa-spinner fa-spin fa-3x" style="color: var(--orange); margin-bottom: 18px;"></i>
+                <p style="font-size: 1.1rem; font-weight: 600;">Evaluating candidate vectors and Ebbinghaus decay formulas...</p>
+            </div>
+        </section>
+
+        <!-- Diagnostic Prerequisite & Topic Breakdown -->
+        <section class="diag-section">
+            <h2><i class="fas fa-project-diagram" style="color: var(--orange);"></i> 32+ Micro-Pattern Diagnostic & Memory Retention State</h2>
+            <p>Real-time telemetry showing your decay-adjusted mastery scores across all fine-grained interview patterns.</p>
+            <div class="topic-mastery-grid" id="topicMasteryGrid">
+                <!-- Populated dynamically -->
+            </div>
+        </section>
+    </main>
+
+    <script>
+        let allRecData = [];
+
+        document.addEventListener("DOMContentLoaded", () => {
+            fetchRecommendations();
+        });
+
+        async function fetchRecommendations() {
+            const userStr = localStorage.getItem('user');
+            if (!userStr) {
+                window.location.href = 'login.html';
+                return;
+            }
+            const user = JSON.parse(userStr);
+            const userId = user.id || 1;
+
+            const gridContainer = document.getElementById("recGridContainer");
+            gridContainer.innerHTML = `
+                <div style="grid-column: 1/-1; text-align: center; padding: 70px 20px; color: var(--text-secondary);">
+                    <i class="fas fa-spinner fa-spin fa-3x" style="color: var(--orange); margin-bottom: 18px;"></i>
+                    <p style="font-size: 1.1rem; font-weight: 600;">Evaluating candidate vectors and Ebbinghaus decay formulas...</p>
+                </div>
+            `;
+
+            try {
+                const response = await fetch(`http://localhost:5000/api/recommendations/user/${userId}`);
+                const data = await response.json();
+
+                if (!data || !data.success) {
+                    gridContainer.innerHTML = `<div style="grid-column: 1/-1; color: #ef4444; text-align: center; padding: 40px; font-weight: 700;">Failed to load recommendations. Please make sure the server is running on port 5000.</div>`;
+                    return;
+                }
+
+                // Update KPIs
+                document.getElementById("kpiRecCount").innerText = data.summary.totalRecommendations || 0;
+                document.getElementById("kpiMasteredCount").innerText = data.summary.patternsMasteredCount || data.summary.topicsMasteredCount || 0;
+                document.getElementById("kpiFrontierCount").innerText = data.summary.topicsInFrontierCount || 0;
+                document.getElementById("kpiAccuracy").innerText = (data.summary.averageAccuracy || 0) + '%';
+
+                allRecData = data.recommendations || [];
+                renderTodaysMission(data.todaysMission || []);
+                renderRecommendations(allRecData);
+                renderTopicMastery(data.patternStats || data.masteryByTopic || {});
+            } catch (err) {
+                console.error("Error fetching recommendations:", err);
+                gridContainer.innerHTML = `
+                    <div style="grid-column: 1/-1; color: #ef4444; text-align: center; padding: 50px 20px; background: #fee2e2; border-radius: 16px; border: 1px solid #fecaca;">
+                        <i class="fas fa-exclamation-triangle fa-2x" style="margin-bottom: 12px;"></i>
+                        <h3 style="margin: 0 0 6px 0;">Diagnostics Engine Connection Error</h3>
+                        <p style="margin: 0; font-size: 0.95rem;">Could not reach backend at http://localhost:5000. Error: ${err.message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        function renderTodaysMission(missions) {
+            const container = document.getElementById("todaysMissionGrid");
+            if (!missions || missions.length === 0) {
+                container.innerHTML = `<div style="grid-column: 1/-1; color: #cbd5e1; font-weight: 600;">All daily roadmap milestones completed or pending telemetry!</div>`;
+                return;
+            }
+
+            container.innerHTML = missions.map(m => {
+                const prob = m.problem;
+                const diffLower = (prob.difficulty || 'medium').toLowerCase();
+                return `
+                    <div class="mission-card animate__animated animate__fadeIn" onclick="navigateToProblem(${prob.problemId || prob.id})">
+                        <div>
+                            <span class="slot-title-badge">${m.slotTitle}</span>
+                            <h4 class="mission-prob-title">
+                                <span>${prob.title}</span>
+                                <span class="diff-tag ${diffLower}" style="font-size: 0.72rem; padding: 2px 8px;">${prob.difficulty}</span>
+                            </h4>
+                            <p class="mission-goal">${m.slotGoal}</p>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 12px; margin-top: 10px;">
+                            <span style="font-size: 0.8rem; font-weight: 700; color: #94a3b8;"><i class="fas fa-folder"></i> ${prob.patternName || prob.category}</span>
+                            <button onclick="event.stopPropagation(); navigateToProblem(${prob.problemId || prob.id})" class="launch-btn" style="padding: 6px 14px; font-size: 0.82rem;">
+                                Start <i class="fas fa-play"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderRecommendations(list) {
+            const gridContainer = document.getElementById("recGridContainer");
+            if (!list || list.length === 0) {
+                gridContainer.innerHTML = `
+                    <div style="grid-column: 1/-1; text-align: center; padding: 60px 20px; background: #ffffff; border-radius: 18px; border: 1px solid var(--border-color);">
+                        <i class="fas fa-check-circle fa-4x" style="color: #10b981; margin-bottom: 18px;"></i>
+                        <h3 style="font-size: 1.6rem; margin: 0 0 8px 0;">All Diagnosed Gaps Mastered!</h3>
+                        <p style="color: var(--text-secondary); max-width: 500px; margin: 0 auto;">You have zero critical weakness flags right now. Explore the Problem Archive to tackle more advanced challenges!</p>
+                    </div>
+                `;
+                return;
+            }
+
+            gridContainer.innerHTML = list.map((rec, index) => {
+                let badgeClass = 'badge-default';
+                let reasonIcon = 'fa-lightbulb';
+                if (rec.reasonType.includes('COMPLEXITY_OPTIMIZATION')) {
+                    badgeClass = 'badge-complexity';
+                    reasonIcon = 'fa-gauge-high';
+                } else if (rec.reasonType.includes('DAG_COMPLEXITY_UNLOCK')) {
+                    badgeClass = 'badge-complexity';
+                    reasonIcon = 'fa-lock-open';
+                } else if (rec.reasonType.includes('WEAKNESS')) {
+                    badgeClass = 'badge-weakness';
+                    reasonIcon = 'fa-tools';
+                } else if (rec.reasonType.includes('SKILL_GAP')) {
+                    badgeClass = 'badge-frontier';
+                    reasonIcon = 'fa-bolt';
+                } else if (rec.reasonType.includes('SPACED_REVISION')) {
+                    badgeClass = 'badge-revision';
+                    reasonIcon = 'fa-sync';
+                } else if (rec.reasonType.includes('CONTEXT')) {
+                    badgeClass = 'badge-momentum';
+                    reasonIcon = 'fa-fire';
+                }
+
+                const diffLower = (rec.difficulty || 'medium').toLowerCase();
+                const confScore = rec.confidenceScore || 88.5;
+
+                return `
+                    <div class="rec-card-interactive reason-${rec.reasonType} animate__animated animate__fadeInUp" 
+                         style="animation-delay: ${index * 0.08}s;"
+                         onclick="navigateToProblem(${rec.problemId})">
+                        <div>
+                            <div class="rec-card-top">
+                                <span class="reason-badge ${badgeClass}">
+                                    <i class="fas ${reasonIcon}"></i> ${rec.reasonTitle}
+                                </span>
+                                <span class="prob-id-badge">Priority Score: ${rec.priorityScore || 85}</span>
+                            </div>
+
+                            <h3 class="rec-prob-title">
+                                <span>${rec.title}</span>
+                                <i class="fas fa-external-link-alt" style="font-size: 0.95rem; opacity: 0.6;"></i>
+                            </h3>
+
+                            <div class="prob-meta-pills">
+                                <span class="meta-pill"><i class="fas fa-microchip" style="color: var(--orange);"></i> ${rec.patternName || rec.category}</span>
+                                <span class="diff-tag ${diffLower}">${rec.difficulty}</span>
+                            </div>
+
+                            <div class="ai-diagnosis-container">
+                                <div class="diagnosis-header">
+                                    <span><i class="fas fa-robot animate__animated animate__pulse animate__infinite"></i> Candidate Rationale & Explainability</span>
+                                    <span style="font-size: 0.78rem; font-weight: 800; color: #10b981;">Confidence: ${confScore}%</span>
+                                </div>
+                                <div class="diagnosis-text">
+                                    ${rec.reasonDetail}
+                                </div>
+                                <div class="confidence-meter-box">
+                                    <span>Statistical Evidence Metric:</span>
+                                    <div class="conf-bar-bg">
+                                        <div class="conf-bar-fill" style="width: ${confScore}%;"></div>
+                                    </div>
+                                    <span>${confScore}%</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="rec-footer" onclick="event.stopPropagation()">
+                            <div class="feedback-box">
+                                <span style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); margin-right: 4px;">Train ML:</span>
+                                <button class="feedback-btn" onclick="sendFeedback(${rec.problemId}, 'USEFUL', '${rec.reasonType}', ${confScore}, this)" title="Useful recommendation">
+                                    <i class="fas fa-thumbs-up"></i>
+                                </button>
+                                <button class="feedback-btn" onclick="sendFeedback(${rec.problemId}, 'TOO_HARD', '${rec.reasonType}', ${confScore}, this)" title="Too hard right now">
+                                    <i class="fas fa-thumbs-down"></i> Too Hard
+                                </button>
+                                <button class="feedback-btn" onclick="sendFeedback(${rec.problemId}, 'KNOWN', '${rec.reasonType}', ${confScore}, this)" title="Already knew this concept">
+                                    <i class="fas fa-check"></i> Knew It
+                                </button>
+                            </div>
+                            <button onclick="navigateToProblem(${rec.problemId})" class="launch-btn">
+                                Solve <i class="fas fa-play"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        async function sendFeedback(problemId, rating, reasonType, confidenceScore, btnElem) {
+            const userStr = localStorage.getItem('user');
+            const user = userStr ? JSON.parse(userStr) : { id: 1 };
+            const userId = user.id || 1;
+
+            try {
+                const response = await fetch('http://localhost:5000/api/recommendations/feedback', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ userId, problemId, rating, reasonType, confidenceScore })
+                });
+                const resData = await response.json();
+                if (resData.success) {
+                    btnElem.parentElement.querySelectorAll('.feedback-btn').forEach(b => {
+                        b.classList.remove('active-useful', 'active-hard');
+                        b.style.opacity = '0.5';
+                    });
+                    btnElem.style.opacity = '1';
+                    if (rating === 'USEFUL') btnElem.classList.add('active-useful');
+                    else btnElem.classList.add('active-hard');
+                }
+            } catch (err) {
+                console.error("Error sending feedback:", err);
+            }
+        }
+
+        function filterRecommendations(filterType, btnElem) {
+            document.querySelectorAll(".filter-tab").forEach(t => t.classList.remove("active"));
+            btnElem.classList.add("active");
+
+            if (filterType === 'all') {
+                renderRecommendations(allRecData);
+            } else {
+                const filtered = allRecData.filter(r => r.reasonType.includes(filterType));
+                renderRecommendations(filtered);
+            }
+        }
+
+        function renderTopicMastery(statsMap) {
+            const container = document.getElementById("topicMasteryGrid");
+            const topics = Object.values(statsMap);
+            if (!topics || topics.length === 0) return;
+
+            container.innerHTML = topics.map(t => {
+                const score = t.decayAdjustedMastery !== undefined ? t.decayAdjustedMastery : (t.masteryScore || 0);
+                return `
+                    <div class="topic-mastery-card">
+                        <div class="tm-top">
+                            <span class="tm-name"><i class="fas ${t.icon || 'fa-code'}" style="color: var(--orange);"></i> ${t.name}</span>
+                            <span class="tm-score">${score}%</span>
+                        </div>
+                        <div class="tm-bar-bg">
+                            <div class="tm-bar-fill" style="width: ${score}%;"></div>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin-top: 10px; font-size: 0.78rem; color: var(--text-secondary); font-weight: 600;">
+                            <span>Solved: <strong style="color: var(--text-primary);">${t.solvedCount || 0}</strong> / ${t.totalProblems || 1}</span>
+                            <span>Retention Factor: <strong style="color: #10b981;">${Math.round((t.retentionFactor || 1.0) * 100)}%</strong></span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function navigateToProblem(problemId) {
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            const userId = user.id || 1;
+            window.location.href = `workspace.html?id=${problemId}&userId=${userId}&from=recommendations.html`;
+        }
+
+        function logout() {
+            localStorage.removeItem('user');
+            window.location.href = 'login.html';
+        }
+    </script>
+</body>
+</html>

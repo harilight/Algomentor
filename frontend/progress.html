@@ -1,0 +1,1162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analytics & Progress | AlgoMentor</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+        :root {
+            --orange: #FF6B00;
+            --orange-hover: #e05e00;
+            --orange-light: rgba(255, 107, 0, 0.08);
+            --black: #0f172a;
+            --white: #ffffff;
+            --bg-main: #f8fafc;
+            --bg-sidebar: #ffffff;
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+            --card-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.06), 0 8px 10px -6px rgba(15, 23, 42, 0.04);
+            --radius: 16px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --easy: #22c55e;
+            --medium: #eab308;
+            --hard: #ef4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            display: flex;
+            background: var(--bg-main);
+            color: var(--text-primary);
+            min-height: 100vh;
+        }
+
+        /* =========================
+           SIDEBAR (Exact match with problems.html)
+        ========================= */
+        .sidebar {
+            width: 260px;
+            background: var(--bg-sidebar) !important;
+            border-right: 1px solid var(--border-color) !important;
+            display: flex;
+            flex-direction: column;
+            padding: 2rem 1.5rem !important;
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            z-index: 90;
+        }
+
+        .sidebar .logo {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--text-primary) !important;
+            margin-bottom: 3rem !important;
+            padding-left: 0;
+        }
+
+        .sidebar .logo span { color: var(--orange) !important; }
+
+        .sidebar ul {
+            list-style: none;
+            margin-top: 40px !important;
+            display: flex;
+            flex-direction: column;
+            gap: 0 !important;
+        }
+
+        .sidebar ul li, .sidebar li {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.85rem 1rem !important;
+            margin-bottom: 10px !important;
+            color: var(--text-secondary) !important;
+            font-weight: 500;
+            font-size: 0.95rem;
+            border-radius: var(--radius) !important;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .sidebar ul li:hover, .sidebar li:hover {
+            background: var(--orange-light) !important;
+            color: var(--orange) !important;
+            transform: none !important;
+        }
+
+        .sidebar ul li.active, .sidebar li.active {
+            background: var(--orange) !important;
+            color: var(--white) !important;
+            box-shadow: 0 4px 14px rgba(255, 107, 0, 0.3) !important;
+        }
+
+        .sidebar li i { font-size: 1.1rem; width: 22px; text-align: center; }
+
+        /* Main Container */
+        .main-content {
+            margin-left: 260px;
+            flex-grow: 1;
+            padding: 40px 50px;
+            max-width: 1450px;
+            width: calc(100% - 260px);
+            overflow-y: auto;
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Header */
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 35px;
+            background: var(--white);
+            padding: 24px 30px;
+            border-radius: var(--radius);
+            box-shadow: var(--card-shadow);
+            border: 1px solid var(--border-color);
+        }
+
+        .header-left h1 {
+            font-size: 1.85rem;
+            font-weight: 800;
+            color: var(--black);
+            letter-spacing: -0.5px;
+        }
+
+        .header-left p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            margin-top: 4px;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .live-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(34, 197, 94, 0.1);
+            color: #16a34a;
+            padding: 8px 14px;
+            border-radius: 30px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            border: 1px solid rgba(34, 197, 94, 0.3);
+        }
+
+        .live-dot {
+            width: 8px;
+            height: 8px;
+            background: #22c55e;
+            border-radius: 50%;
+            animation: pulseDot 2s infinite;
+        }
+
+        @keyframes pulseDot {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.4; transform: scale(1.3); }
+        }
+
+        /* ============================
+           KPI CARDS SECTION
+        ============================ */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+            margin-bottom: 40px;
+        }
+
+        .kpi-card {
+            background: var(--white);
+            padding: 26px;
+            border-radius: var(--radius);
+            box-shadow: var(--card-shadow);
+            border: 1px solid var(--border-color);
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            animation: slideUpFade 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        .kpi-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 16px 32px -8px rgba(15, 23, 42, 0.12);
+        }
+
+        .kpi-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 6px;
+            height: 100%;
+            background: var(--orange);
+            border-radius: 6px 0 0 6px;
+        }
+
+        .kpi-card.green::before { background: var(--easy); }
+        .kpi-card.blue::before { background: #3b82f6; }
+        .kpi-card.purple::before { background: #8b5cf6; }
+
+        .kpi-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+        }
+
+        .kpi-title {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .kpi-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+        }
+
+        .kpi-icon.orange { background: rgba(255, 107, 0, 0.1); color: var(--orange); }
+        .kpi-icon.green { background: rgba(34, 197, 94, 0.1); color: var(--easy); }
+        .kpi-icon.blue { background: rgba(59, 130, 246, 0.1); color: #3b82f6; }
+        .kpi-icon.purple { background: rgba(139, 92, 246, 0.1); color: #8b5cf6; }
+
+        .kpi-value {
+            font-size: 2.2rem;
+            font-weight: 900;
+            color: var(--black);
+            line-height: 1.1;
+        }
+
+        .kpi-subtext {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-top: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .diff-bar-track {
+            height: 10px;
+            background: #f1f5f9;
+            border-radius: 10px;
+            display: flex;
+            overflow: hidden;
+            margin-top: 15px;
+        }
+
+        .diff-bar-segment {
+            height: 100%;
+            transition: width 1.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        /* ============================
+           ACTIVITY HEATMAP SECTION (Placed right below KPI row)
+        ============================ */
+        .heatmap-card {
+            background: var(--white);
+            padding: 28px;
+            border-radius: var(--radius);
+            box-shadow: var(--card-shadow);
+            border: 1px solid var(--border-color);
+            margin-bottom: 40px;
+        }
+
+        .heatmap-header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .heatmap-title-stat {
+            font-size: 1.15rem;
+            font-weight: 800;
+            color: var(--black);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .heatmap-title-stat i {
+            font-size: 0.95rem;
+            color: var(--text-muted);
+        }
+
+        .heatmap-stats-right {
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--text-secondary);
+        }
+
+        .heatmap-stats-right span strong {
+            color: var(--black);
+            font-weight: 900;
+        }
+
+        .heatmap-select {
+            padding: 6px 14px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            background: #f8fafc;
+            font-weight: 700;
+            font-size: 0.85rem;
+            color: var(--black);
+            cursor: pointer;
+        }
+
+        .heatmap-months-container {
+            display: flex;
+            gap: 14px;
+            overflow-x: auto;
+            padding: 10px 4px 18px 4px;
+            align-items: flex-start;
+        }
+
+        .month-block {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .month-grid {
+            display: grid;
+            grid-template-rows: repeat(7, 13px);
+            grid-auto-flow: column;
+            gap: 4px;
+        }
+
+        .month-label {
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: var(--text-muted);
+        }
+
+        .heat-cell {
+            width: 13px;
+            height: 13px;
+            background: #f1f5f9;
+            border-radius: 2.5px;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            cursor: pointer;
+        }
+
+        .heat-cell:hover:not(.empty) {
+            transform: scale(1.4);
+            z-index: 10;
+            box-shadow: 0 0 8px rgba(34, 197, 94, 0.6);
+        }
+
+        .heat-cell.empty {
+            background: transparent !important;
+            box-shadow: none !important;
+            cursor: default;
+            pointer-events: none;
+        }
+
+        .heat-cell[data-level="1"] { background: #bbf7d0; }
+        .heat-cell[data-level="2"] { background: #4ade80; }
+        .heat-cell[data-level="3"] { background: #22c55e; }
+        .heat-cell[data-level="4"] { background: #15803d; }
+
+        .heatmap-legend {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 6px;
+            margin-top: 14px;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        /* ============================
+           CATEGORY ANIMATIONS SECTION
+        ============================ */
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .section-header h2 {
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: var(--black);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .category-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+            gap: 22px;
+            margin-bottom: 45px;
+        }
+
+        .category-card {
+            background: var(--white);
+            padding: 24px;
+            border-radius: var(--radius);
+            box-shadow: var(--card-shadow);
+            border: 1px solid var(--border-color);
+            position: relative;
+            overflow: hidden;
+            transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+            opacity: 0;
+            transform: translateY(20px);
+            animation: slideUpFade 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        @keyframes slideUpFade {
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .category-card:hover {
+            transform: translateY(-6px) scale(1.015);
+            box-shadow: 0 20px 35px -10px rgba(15, 23, 42, 0.14);
+            border-color: #cbd5e1;
+        }
+
+        .category-card.elite {
+            border: 1.5px solid #facc15;
+            box-shadow: 0 8px 25px rgba(234, 179, 8, 0.15);
+        }
+
+        .category-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .category-name {
+            font-size: 1.1rem;
+            font-weight: 800;
+            color: var(--black);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .category-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            background: #f1f5f9;
+            color: var(--black);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+        }
+
+        .elite-badge {
+            background: rgba(234, 179, 8, 0.15);
+            color: #ca8a04;
+            border: 1px solid #facc15;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            animation: pulseElite 2.5s infinite;
+        }
+
+        @keyframes pulseElite {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.06); }
+        }
+
+        .category-stats {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--text-secondary);
+            margin-bottom: 10px;
+        }
+
+        .liquid-track {
+            height: 14px;
+            background: #f1f5f9;
+            border-radius: 14px;
+            overflow: hidden;
+            position: relative;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.06);
+        }
+
+        .liquid-bar {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #3b82f6, #22c55e);
+            border-radius: 14px;
+            position: relative;
+            transition: width 1.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .liquid-bar.elite-gradient {
+            background: linear-gradient(90deg, #f59e0b, #22c55e);
+        }
+
+        .liquid-bar::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 60%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.55), transparent);
+            animation: shimmerSweep 3s infinite linear;
+        }
+
+        @keyframes shimmerSweep {
+            0% { left: -100%; }
+            100% { left: 200%; }
+        }
+
+        .category-difficulty-split {
+            display: flex;
+            gap: 12px;
+            margin-top: 16px;
+            padding-top: 14px;
+            border-top: 1px dashed #e2e8f0;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .split-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .split-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+
+        /* ============================
+           ACTIONABLE TABLES SECTION
+        ============================ */
+        .split-tables-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 26px;
+            margin-bottom: 50px;
+        }
+
+        .table-card {
+            background: var(--white);
+            padding: 26px;
+            border-radius: var(--radius);
+            box-shadow: var(--card-shadow);
+            border: 1px solid var(--border-color);
+        }
+
+        .table-card h3 {
+            font-size: 1.2rem;
+            font-weight: 800;
+            color: var(--black);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            text-align: left;
+            padding: 12px 14px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        td {
+            padding: 14px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        tr:hover td { background: #f8fafc; }
+
+        .resume-btn {
+            padding: 6px 14px;
+            background: var(--black);
+            color: var(--white);
+            border: none;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .resume-btn:hover {
+            background: var(--orange);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(255, 107, 0, 0.25);
+        }
+
+        .diff-tag {
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 800;
+        }
+
+        .diff-easy { background: rgba(34, 197, 94, 0.12); color: var(--easy); }
+        .diff-medium { background: rgba(234, 179, 8, 0.12); color: #ca8a04; }
+        .diff-hard { background: rgba(239, 68, 68, 0.12); color: var(--hard); }
+
+        @media (max-width: 900px) {
+            body { flex-direction: column; }
+            .sidebar { width: 100%; height: auto; position: relative; }
+            .main-content { margin-left: 0; width: 100%; padding: 20px; }
+            .split-tables-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <aside class="sidebar">
+        <div class="logo">
+            Algo<span>Mentor</span>
+        </div>
+        <ul>
+            <li onclick="window.location.href='dashboard.html'">
+                <i class="fas fa-columns"></i>
+                Dashboard
+            </li>
+            <li onclick="window.location.href='problems.html'">
+                <i class="fas fa-code"></i>
+                Problems
+            </li>
+            <li class="active" onclick="window.location.href='progress.html'">
+                <i class="fas fa-chart-bar"></i>
+                Progress
+            </li>
+            <li>
+                <i class="fas fa-robot"></i>
+                AI Mentor
+            </li>
+            <li onclick="window.location.href='recommendations.html'">
+                <i class="fas fa-lightbulb"></i>
+                Recommendations
+            </li>
+            <li onclick="window.location.href='visualizer.html'">
+                <i class="fas fa-magic"></i>
+                Visualizer Engine
+            </li>
+            <li onclick="window.location.href='profile.html'">
+                <i class="fas fa-user-circle"></i>
+                Profile
+            </li>
+            <li onclick="logout()">
+                <i class="fas fa-sign-out-alt"></i>
+                Logout
+            </li>
+        </ul>
+    </aside>
+
+    <main class="main-content">
+        <!-- Page Header -->
+        <header class="page-header">
+            <div class="header-left">
+                <h1>Performance & Algorithmic Mastery</h1>
+                <p id="userSubtext">Loading personal progression analytics...</p>
+            </div>
+            <div class="header-right">
+                <div class="live-badge">
+                    <span class="live-dot"></span> Live Evaluation Telemetry
+                </div>
+                <button onclick="fetchAnalytics()" style="padding: 10px 18px; border-radius: 10px; border: 1px solid var(--border-color); background: var(--white); font-weight: 700; cursor: pointer; transition: all 0.2s;">
+                    <i class="fas fa-sync-alt"></i> Refresh
+                </button>
+            </div>
+        </header>
+
+        <!-- KPI Summary Grid -->
+        <section class="kpi-grid">
+            <div class="kpi-card orange" style="animation-delay: 0.1s;">
+                <div class="kpi-top">
+                    <span class="kpi-title">Problem Solving Status</span>
+                    <div class="kpi-icon orange"><i class="fas fa-trophy"></i></div>
+                </div>
+                <div class="kpi-value" id="kpiSolvedTotal">0 / 2641</div>
+                <div class="kpi-subtext" id="kpiSolvedSubtext">Attempted: 0 | Remaining: 2641</div>
+                <div class="diff-bar-track" id="kpiDiffBar">
+                    <div class="diff-bar-segment" style="width: 0%; background: var(--easy);" id="barEasy"></div>
+                    <div class="diff-bar-segment" style="width: 0%; background: var(--medium);" id="barMedium"></div>
+                    <div class="diff-bar-segment" style="width: 0%; background: var(--hard);" id="barHard"></div>
+                </div>
+            </div>
+
+            <div class="kpi-card green" style="animation-delay: 0.2s;">
+                <div class="kpi-top">
+                    <span class="kpi-title">Submission Acceptance</span>
+                    <div class="kpi-icon green"><i class="fas fa-check-double"></i></div>
+                </div>
+                <div class="kpi-value" id="kpiAcceptanceRate">0.0%</div>
+                <div class="kpi-subtext" id="kpiSubmissionsText">Total Submissions: 0 | Accepted: 0</div>
+            </div>
+
+            <div class="kpi-card blue" style="animation-delay: 0.3s;">
+                <div class="kpi-top">
+                    <span class="kpi-title">Active Coding Streak</span>
+                    <div class="kpi-icon blue"><i class="fas fa-fire"></i></div>
+                </div>
+                <div class="kpi-value" id="kpiStreakDays">0 Days</div>
+                <div class="kpi-subtext">Consistent daily algorithmic training</div>
+            </div>
+
+            <div class="kpi-card purple" style="animation-delay: 0.4s;">
+                <div class="kpi-top">
+                    <span class="kpi-title">Perseverance Index</span>
+                    <div class="kpi-icon purple"><i class="fas fa-bug"></i></div>
+                </div>
+                <div class="kpi-value" id="kpiErrorsConquered">0</div>
+                <div class="kpi-subtext">Total runtime & compilation errors conquered</div>
+            </div>
+
+            <div class="kpi-card orange" style="animation-delay: 0.5s;">
+                <div class="kpi-top">
+                    <span class="kpi-title">Complexity Mastery</span>
+                    <div class="kpi-icon orange"><i class="fas fa-gauge-high"></i></div>
+                </div>
+                <div class="kpi-value" id="kpiComplexityMasteryRate">100.0%</div>
+                <div class="kpi-subtext">Optimal Time & Space Efficiency</div>
+            </div>
+        </section>
+
+        <!-- Activity Heatmap Section (Placed exactly below KPI row and above Category Mastery) -->
+        <section class="heatmap-card">
+            <div class="heatmap-header-row">
+                <div class="heatmap-title-stat">
+                    <span id="heatmapTotalCount">0</span> submissions in the past one year <i class="fas fa-info-circle" title="Evaluated algorithmic executions"></i>
+                </div>
+                <div class="heatmap-stats-right">
+                    <span>Total active days: <strong id="heatmapActiveDays">0</strong></span>
+                    <span>Max streak: <strong id="heatmapMaxStreak">0</strong></span>
+                    <select class="heatmap-select">
+                        <option value="current">Current</option>
+                        <option value="2026">2026</option>
+                        <option value="2025">2025</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="heatmap-months-container" id="heatmapMonthsContainer">
+                <!-- 12/13 distinct monthly grid blocks generated by JS -->
+            </div>
+
+            <div class="heatmap-legend">
+                <span>Less</span>
+                <div class="heat-cell" style="width: 12px; height: 12px;" data-level="0"></div>
+                <div class="heat-cell" style="width: 12px; height: 12px;" data-level="1"></div>
+                <div class="heat-cell" style="width: 12px; height: 12px;" data-level="2"></div>
+                <div class="heat-cell" style="width: 12px; height: 12px;" data-level="3"></div>
+                <div class="heat-cell" style="width: 12px; height: 12px;" data-level="4"></div>
+                <span>More</span>
+            </div>
+        </section>
+
+        <!-- Category Mastery Animations (Placed exactly below Heatmap) -->
+        <section>
+            <div class="section-header">
+                <h2><i class="fas fa-layer-group" style="color: var(--orange);"></i> Algorithmic Topic Mastery</h2>
+                <span style="font-size: 0.85rem; font-weight: 700; color: var(--text-secondary);">Real-time Liquid Shimmer Evaluation</span>
+            </div>
+            <div class="category-grid" id="categoryGrid">
+                <!-- Dynamically populated -->
+                <div style="grid-column: 1/-1; padding: 40px; text-align: center; color: var(--text-muted); font-weight: 600;">
+                    <i class="fas fa-spinner fa-spin fa-2x"></i><br><br>Analyzing canonical algorithmic progression rates...
+                </div>
+            </div>
+        </section>
+
+        <!-- Actionable Tables -->
+        <section class="split-tables-grid">
+            <div class="table-card">
+                <h3><i class="fas fa-hammer" style="color: var(--medium);"></i> Finish What You Started</h3>
+                <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 16px; font-weight: 600;">Problems currently attempted but awaiting an Accepted solution.</p>
+                <div style="overflow-x: auto;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Problem Title</th>
+                                <th>Difficulty</th>
+                                <th>Attempts</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="pendingTableBody">
+                            <tr>
+                                <td colspan="4" style="text-align: center; padding: 25px; color: var(--text-muted);">No pending attempted problems found. Clean slate!</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="table-card">
+                <h3><i class="fas fa-bolt" style="color: var(--easy);"></i> Personal Best Runtimes</h3>
+                <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 16px; font-weight: 600;">Top 10 fastest verified execution runtimes from your submission history.</p>
+                <div style="overflow-x: auto;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Problem Title</th>
+                                <th>Language</th>
+                                <th>Runtime</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody id="fastestTableBody">
+                            <tr>
+                                <td colspan="4" style="text-align: center; padding: 25px; color: var(--text-muted);">Solve problems to record benchmark execution speeds!</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        let activeUserId = 101; // default fallback
+
+        document.addEventListener('DOMContentLoaded', () => {
+            try {
+                const userSession = JSON.parse(localStorage.getItem('user'));
+                if (userSession && userSession.id) {
+                    activeUserId = userSession.id;
+                    document.getElementById('userSubtext').innerText = `Live progression analytics for ${userSession.full_name || userSession.email} (ID: ${activeUserId})`;
+                }
+            } catch(e) {}
+
+            fetchAnalytics();
+        });
+
+        function fetchAnalytics() {
+            fetch(`http://localhost:5000/api/analytics/user/${activeUserId}`)
+                .then(r => r.json())
+                .then(data => {
+                    if (!data.success) return;
+                    renderKPIs(data.kpis);
+                    renderHeatmap(data.heatmap, data.kpis);
+                    renderCategories(data.categories);
+                    renderPendingTable(data.pendingProblems);
+                    renderFastestTable(data.fastestSubmissions);
+                })
+                .catch(err => console.error("Error loading analytics:", err));
+        }
+
+        function renderKPIs(kpis) {
+            const solvedTotal = kpis.solved.Total || 0;
+            const availTotal = kpis.totalProblems.Total || 2641;
+            const attemptedTotal = kpis.attempted.Total || 0;
+
+            document.getElementById('kpiSolvedTotal').innerText = `${solvedTotal} / ${availTotal}`;
+            document.getElementById('kpiSolvedSubtext').innerText = `Attempted: ${attemptedTotal} | Remaining: ${availTotal - solvedTotal}`;
+
+            const easyPct = ((kpis.solved.Easy / availTotal) * 100).toFixed(1);
+            const medPct = ((kpis.solved.Medium / availTotal) * 100).toFixed(1);
+            const hardPct = ((kpis.solved.Hard / availTotal) * 100).toFixed(1);
+
+            document.getElementById('barEasy').style.width = `${easyPct}%`;
+            document.getElementById('barMedium').style.width = `${medPct}%`;
+            document.getElementById('barHard').style.width = `${hardPct}%`;
+
+            document.getElementById('kpiAcceptanceRate').innerText = `${kpis.acceptanceRate}%`;
+            document.getElementById('kpiSubmissionsText').innerText = `Total Submissions: ${kpis.totalSubmissions} | Accepted: ${kpis.totalAcceptedSubs}`;
+            document.getElementById('kpiErrorsConquered').innerText = kpis.totalErrors || 0;
+            const streakDaysEl = document.getElementById('kpiStreakDays');
+            if (streakDaysEl) streakDaysEl.innerText = `${kpis.currentStreak || 0} Days`;
+            const compRateEl = document.getElementById('kpiComplexityMasteryRate');
+            if (compRateEl) compRateEl.innerText = `${kpis.complexityMasteryRate || '100.0'}%`;
+        }
+
+        function renderCategories(categories) {
+            const grid = document.getElementById('categoryGrid');
+            grid.innerHTML = '';
+
+            categories.forEach((cat, idx) => {
+                const total = cat.total_problems || 1;
+                const solved = parseInt(cat.solved_problems) || 0;
+                const attempted = parseInt(cat.attempted_problems) || 0;
+                const easySolved = parseInt(cat.easy_solved) || 0;
+                const medSolved = parseInt(cat.medium_solved) || 0;
+                const hardSolved = parseInt(cat.hard_solved) || 0;
+
+                const rawPct = (solved / total) * 100;
+                let displayPct = `${Math.min(Math.round(rawPct), 100)}%`;
+                if (solved > 0 && Math.round(rawPct) === 0) {
+                    displayPct = `< 1%`;
+                }
+                const masteryPct = Math.min(Math.round(rawPct), 100);
+                const visualBarTarget = solved > 0 ? Math.max(2.5, masteryPct) : 0;
+                const isElite = masteryPct >= 80;
+                const icon = cat.icon || 'fa-code';
+
+                const card = document.createElement('div');
+                card.className = `category-card ${isElite ? 'elite' : ''}`;
+                card.style.animationDelay = `${idx * 0.06}s`;
+
+                card.innerHTML = `
+                    <div class="category-top">
+                        <div class="category-name">
+                            <div class="category-icon"><i class="fas ${icon}"></i></div>
+                            ${cat.category}
+                        </div>
+                        ${isElite ? `<div class="elite-badge"><i class="fas fa-crown"></i> Elite Mastery</div>` : ''}
+                    </div>
+                    
+                    <div class="category-stats">
+                        <span>Solved ${solved} / ${total}</span>
+                        <span style="color: ${isElite ? '#ca8a04' : 'var(--text-primary)'}; font-weight: 800;">${displayPct}</span>
+                    </div>
+
+                    <div class="liquid-track">
+                        <div class="liquid-bar ${isElite ? 'elite-gradient' : ''}" style="width: 0%;" data-target="${visualBarTarget}"></div>
+                    </div>
+
+                    <div class="category-difficulty-split">
+                        <div class="split-item" style="color: var(--easy);">
+                            <span class="split-dot" style="background: var(--easy);"></span>
+                            Easy: ${easySolved}
+                        </div>
+                        <div class="split-item" style="color: #ca8a04;">
+                            <span class="split-dot" style="background: #eab308;"></span>
+                            Med: ${medSolved}
+                        </div>
+                        <div class="split-item" style="color: var(--hard);">
+                            <span class="split-dot" style="background: var(--hard);"></span>
+                            Hard: ${hardSolved}
+                        </div>
+                        <div class="split-item" style="margin-left: auto; color: var(--text-muted);">
+                            Attempted: ${attempted}
+                        </div>
+                    </div>
+
+                    <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; margin-top: 10px; padding-top: 8px; border-top: 1px dashed var(--border-color); color: #64748b;">
+                        <span><i class="fas fa-gauge-high" style="color: #d97706;"></i> Optimal Complexity Mastery</span>
+                        <strong style="color: ${cat.complexity_mastery_rate >= 80 || cat.complexity_mastery_rate === undefined ? '#16a34a' : '#ca8a04'}; font-family: monospace;">${cat.complexity_mastery_rate !== undefined ? cat.complexity_mastery_rate + '%' : '100.0%'}</strong>
+                    </div>
+                `;
+
+                grid.appendChild(card);
+            });
+
+            setTimeout(() => {
+                document.querySelectorAll('.liquid-bar').forEach(bar => {
+                    const target = bar.getAttribute('data-target');
+                    bar.style.width = `${target}%`;
+                });
+            }, 150);
+        }
+
+        function renderHeatmap(heatmapData, kpis = null) {
+            const container = document.getElementById('heatmapMonthsContainer');
+            if (!container) return;
+            container.innerHTML = '';
+
+            const dateMap = {};
+            let totalYearSubmissions = 0;
+            let activeDays = 0;
+            let currentStreak = 0;
+            let maxStreak = 0;
+            let tempStreak = 0;
+
+            if (Array.isArray(heatmapData)) {
+                heatmapData.forEach(item => {
+                    dateMap[item.date] = item.count;
+                    totalYearSubmissions += item.count;
+                    if (item.count > 0) {
+                        activeDays++;
+                        tempStreak++;
+                        if (tempStreak > maxStreak) maxStreak = tempStreak;
+                    } else {
+                        tempStreak = 0;
+                    }
+                });
+            }
+
+            if (kpis) {
+                if (kpis.activeDays !== undefined) activeDays = kpis.activeDays;
+                if (kpis.maxStreak !== undefined) maxStreak = kpis.maxStreak;
+            }
+
+            const totalCountEl = document.getElementById('heatmapTotalCount');
+            const activeDaysEl = document.getElementById('heatmapActiveDays');
+            const maxStreakEl = document.getElementById('heatmapMaxStreak');
+            if (totalCountEl) totalCountEl.innerText = totalYearSubmissions;
+            if (activeDaysEl) activeDaysEl.innerText = activeDays;
+            if (maxStreakEl) maxStreakEl.innerText = maxStreak;
+
+            const today = new Date();
+            const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+            
+            for (let i = 12; i >= 0; i--) {
+                const targetDate = new Date(today.getFullYear(), today.getMonth() - i, 1);
+                const year = targetDate.getFullYear();
+                const monthIdx = targetDate.getMonth();
+                const daysInMonth = new Date(year, monthIdx + 1, 0).getDate();
+                const firstDayOfWeek = new Date(year, monthIdx, 1).getDay(); // 0=Sun, 1=Mon... 6=Sat
+
+                const monthBlock = document.createElement('div');
+                monthBlock.className = 'month-block';
+
+                const monthGrid = document.createElement('div');
+                monthGrid.className = 'month-grid';
+
+                for (let pad = 0; pad < firstDayOfWeek; pad++) {
+                    const spacer = document.createElement('div');
+                    spacer.className = 'heat-cell empty';
+                    monthGrid.appendChild(spacer);
+                }
+
+                for (let day = 1; day <= daysInMonth; day++) {
+                    const dStr = `${year}-${String(monthIdx + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                    const count = dateMap[dStr] || 0;
+
+                    let level = 0;
+                    if (count >= 5) level = 4;
+                    else if (count >= 3) level = 3;
+                    else if (count >= 2) level = 2;
+                    else if (count >= 1) level = 1;
+
+                    const cell = document.createElement('div');
+                    cell.className = 'heat-cell';
+                    cell.setAttribute('data-level', level);
+                    cell.title = `${dStr}: ${count} verified submissions`;
+                    monthGrid.appendChild(cell);
+                }
+
+                const totalSlots = firstDayOfWeek + daysInMonth;
+                const remainder = totalSlots % 7;
+                if (remainder !== 0) {
+                    const trailingPads = 7 - remainder;
+                    for (let pad = 0; pad < trailingPads; pad++) {
+                        const spacer = document.createElement('div');
+                        spacer.className = 'heat-cell empty';
+                        monthGrid.appendChild(spacer);
+                    }
+                }
+
+                const monthLabel = document.createElement('div');
+                monthLabel.className = 'month-label';
+                monthLabel.innerText = monthNames[monthIdx];
+
+                monthBlock.appendChild(monthGrid);
+                monthBlock.appendChild(monthLabel);
+                container.appendChild(monthBlock);
+            }
+        }
+
+        function renderPendingTable(pendingList) {
+            const tbody = document.getElementById('pendingTableBody');
+            if (!pendingList || pendingList.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" style="text-align: center; padding: 25px; color: var(--text-muted);">No pending attempted problems found. Clean slate!</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = '';
+            pendingList.forEach(item => {
+                const tr = document.createElement('tr');
+                const diffClass = item.difficulty === 'Medium' ? 'diff-medium' : (item.difficulty === 'Hard' ? 'diff-hard' : 'diff-easy');
+                
+                tr.innerHTML = `
+                    <td style="font-weight: 800; color: var(--black);">${item.title || ('Problem #' + item.problem_id)}</td>
+                    <td><span class="diff-tag ${diffClass}">${item.difficulty || 'Medium'}</span></td>
+                    <td style="color: var(--text-secondary);">${item.submission_count || 1} attempts (${item.error_count || 0} errors)</td>
+                    <td>
+                        <button class="resume-btn" onclick="window.location.href='workspace.html?id=${item.problem_id}&from=progress.html'">
+                            Resume Coding →
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function renderFastestTable(fastestList) {
+            const tbody = document.getElementById('fastestTableBody');
+            if (!fastestList || fastestList.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" style="text-align: center; padding: 25px; color: var(--text-muted);">Solve problems to record benchmark execution speeds!</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = '';
+            fastestList.forEach(item => {
+                const tr = document.createElement('tr');
+                const dateStr = item.submitted_at ? new Date(item.submitted_at).toLocaleDateString() : 'Today';
+                
+                tr.innerHTML = `
+                    <td style="font-weight: 800; color: var(--black);">${item.problem_title || ('Problem #' + item.problem_id)}</td>
+                    <td><span style="background: #f1f5f9; padding: 4px 10px; border-radius: 6px; font-weight: 700; font-size: 0.8rem;">${item.language || 'javascript'}</span></td>
+                    <td style="color: #16a34a; font-weight: 900; font-size: 0.95rem;">⚡ ${item.execution_time_ms} ms</td>
+                    <td style="color: var(--text-muted); font-size: 0.85rem;">${dateStr}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function logout() {
+            localStorage.removeItem('user');
+            window.location.href = 'login.html';
+        }
+    </script>
+</body>
+</html>

@@ -1,9 +1,22 @@
-# Gitignore
+# Dependencies
 node_modules/
-.gemini/
-__pycache__/
+
+# Environment variables
 .env
+*.env
+
+# Python cache & build
+__pycache__/
+*.pyc
+*.pyo
+
+# IDE & OS files
 .vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Logs & temporary files
 *.log
-scratch/
-.agents/
+*.json.backup
+test_out.json

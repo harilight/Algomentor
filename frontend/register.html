@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register | AlgoMentor AI</title>
+
+    <link rel="stylesheet" href="style.css">
+
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+</head>
+
+<body>
+
+    <div class="auth-page">
+
+        <!-- LEFT PANEL -->
+
+        <div class="auth-left">
+
+            <div class="logo" style="font-size:2rem;">
+                Algo<span>Mentor</span>
+            </div>
+
+            <h1>
+                Start Learning With
+                <span>AI</span>
+            </h1>
+
+            <p>
+                Build coding skills through intelligent
+                mentorship, analytics, visualizations,
+                and structured learning paths.
+            </p>
+
+            <ul class="auth-features">
+
+                <li>✓ Personalized DSA roadmap</li>
+                <li>✓ AI hints and explanations</li>
+                <li>✓ Topic mastery tracking</li>
+                <li>✓ Smart recommendations</li>
+                <li>✓ Interview preparation tools</li>
+
+            </ul>
+
+        </div>
+
+        <!-- RIGHT PANEL -->
+
+        <div class="auth-right">
+
+            <div class="auth-box">
+
+                <h2>Create Account 🚀</h2>
+
+                <p>
+                    Join thousands of developers improving daily.
+                </p>
+
+                <form id="registerForm">
+
+                    <div class="input-group">
+                        <input
+                            id="registerName"
+                            type="text"
+                            placeholder="Full Name"
+                            required>
+                    </div>
+
+                    <div class="input-group">
+                        <input
+                            id="registerEmail"
+                            type="email"
+                            placeholder="Email Address"
+                            required>
+                    </div>
+
+                    <div class="input-row" style="margin-bottom:18px;">
+                        <div class="input-group" style="margin-bottom:0;">
+                            <input
+                                id="registerAge"
+                                type="number"
+                                placeholder="Age"
+                                min="10"
+                                max="120"
+                                required>
+                        </div>
+                        <div class="input-group" style="margin-bottom:0;">
+                            <input
+                                id="registerCountry"
+                                type="text"
+                                placeholder="Country (e.g. India, USA)"
+                                required>
+                        </div>
+                    </div>
+
+                    <div class="gender-section-title">
+                        <i class="fas fa-venus-mars" style="color:var(--orange);"></i> Gender Identity
+                    </div>
+                    <div class="gender-pills-container" id="genderPills">
+                        <span class="gender-pill" onclick="selectGenderPill(this, 'Male')"><i class="fas fa-mars"></i> Male</span>
+                        <span class="gender-pill" onclick="selectGenderPill(this, 'Female')"><i class="fas fa-venus"></i> Female</span>
+                        <span class="gender-pill" onclick="selectGenderPill(this, 'Non-binary')"><i class="fas fa-transgender-alt"></i> Non-binary</span>
+                        <span class="gender-pill" onclick="selectGenderPill(this, 'Prefer not to say')"><i class="fas fa-user-secret"></i> Prefer not to say</span>
+                    </div>
+                    <input type="hidden" id="registerGender" required>
+
+                    <div class="topics-header">
+                        <i class="fas fa-tags" style="color:var(--orange);"></i> Topics of Interest (Select all that apply)
+                    </div>
+                    <div class="topics-bubble-container" id="topicsContainer">
+                        <span class="topic-bubble" onclick="this.classList.toggle('selected')">Arrays</span>
+                        <span class="topic-bubble" onclick="this.classList.toggle('selected')">Strings</span>
+                        <span class="topic-bubble" onclick="this.classList.toggle('selected')">Dynamic Programming</span>
+                        <span class="topic-bubble" onclick="this.classList.toggle('selected')">Graphs</span>
+                        <span class="topic-bubble" onclick="this.classList.toggle('selected')">Trees</span>
+                        <span class="topic-bubble" onclick="this.classList.toggle('selected')">Binary Search</span>
+                        <span class="topic-bubble" onclick="this.classList.toggle('selected')">Two Pointers</span>
+                        <span class="topic-bubble" onclick="this.classList.toggle('selected')">Hash Table</span>
+                        <span class="topic-bubble" onclick="this.classList.toggle('selected')">Sorting</span>
+                        <span class="topic-bubble" onclick="this.classList.toggle('selected')">Math</span>
+                        <span class="topic-bubble" onclick="this.classList.toggle('selected')">Backtracking</span>
+                        <span class="topic-bubble" onclick="this.classList.toggle('selected')">SQL / Databases</span>
+                    </div>
+
+                    <div class="input-row" style="margin-bottom:18px;">
+                        <div class="password-wrapper">
+                            <input
+                                id="registerPassword"
+                                type="password"
+                                placeholder="Password"
+                                required>
+                            <span class="password-toggle-btn" onclick="togglePasswordVisibility('registerPassword', this)">
+                                <i class="fas fa-eye"></i>
+                            </span>
+                        </div>
+                        <div class="password-wrapper">
+                            <input
+                                id="registerConfirmPassword"
+                                type="password"
+                                placeholder="Confirm Password"
+                                required>
+                            <span class="password-toggle-btn" onclick="togglePasswordVisibility('registerConfirmPassword', this)">
+                                <i class="fas fa-eye"></i>
+                            </span>
+                        </div>
+                    </div>
+
+                    <button
+                        type="submit"
+                        class="btn btn-primary auth-btn">
+                        Create Account
+                    </button>
+
+                </form>
+
+                <div class="divider">
+                    OR
+                </div>
+
+                <button class="social-btn">
+
+                    <i class="fab fa-google"></i>
+
+                    Continue with Google
+
+                </button>
+
+                <button class="social-btn">
+
+                    <i class="fab fa-github"></i>
+
+                    Continue with GitHub
+
+                </button>
+
+                <div class="bottom-link">
+
+                    Already have an account?
+
+                    <a href="login.html">
+                        Sign In
+                    </a>
+
+                </div>
+
+                <div
+                    style="
+                        margin-top:20px;
+                        text-align:center;
+                    ">
+
+                    <a href="index.html">
+                        ← Back To Home
+                    </a>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <script src="main.js"></script>
+
+</body>
+
+</html>

@@ -1,0 +1,1452 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Workspace | AlgoMentor</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link rel="stylesheet" href="visualizer-embed.css">
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+        :root {
+            --orange: #ff7a00;
+            --orange-dark: #e76d00;
+            --black: #0f1115;
+            --white: #ffffff;
+            --bg-workspace: #f4f5f7; 
+            --bg-panels: #ffffff;
+            --text-main: #2d3748;
+            --text-muted: #718096;
+            --border-color: #e2e8f0;
+            --easy: #22c55e;
+            --medium: #eab308;
+            --hard: #ef4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-workspace);
+            color: var(--text-main);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* =========================
+           TOP NAVIGATION BAR
+        ========================= */
+        .workspace-nav {
+            height: 55px;
+            background: var(--white);
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-main);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+            flex-shrink: 0;
+            z-index: 100;
+        }
+
+        .nav-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .back-btn {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: color 0.2s;
+        }
+
+        .back-btn:hover { color: var(--orange); }
+
+        .logo-brand {
+            font-weight: 800;
+            font-size: 1.15rem;
+            letter-spacing: -0.5px;
+            color: var(--text-main);
+        }
+
+        .logo-brand span { color: var(--orange); }
+
+        .problem-title-badge {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            background: #f8fafc;
+            color: var(--text-main);
+            padding: 6px 14px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+
+        .nav-center {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .lang-select {
+            background: #f8fafc;
+            color: var(--text-main);
+            border: 1px solid var(--border-color);
+            padding: 6px 14px;
+            border-radius: 8px;
+            outline: none;
+            font-weight: 500;
+            font-size: 0.85rem;
+            cursor: pointer;
+        }
+
+        .nav-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 7px 18px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+
+        .btn-run {
+            background: #f8fafc;
+            color: var(--text-main);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-run:hover {
+            color: var(--orange);
+            background: rgba(255, 107, 0, 0.08);
+            border-color: var(--orange);
+        }
+
+        .btn-submit {
+            background: var(--orange);
+            color: var(--white);
+        }
+
+        .btn-submit:hover {
+            background: var(--orange-dark);
+            box-shadow: 0 4px 12px rgba(255, 122, 0, 0.2);
+        }
+
+        /* =========================
+           SPLIT LAYOUT MAIN
+        ========================= */
+        .workspace-container {
+            flex: 1;
+            display: grid;
+            grid-template-columns: 1fr 1.2fr; 
+            gap: 8px;
+            padding: 8px;
+            height: calc(100vh - 55px);
+            overflow: hidden;
+        }
+
+        .panel {
+            background: var(--bg-panels);
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            height: 100%;
+        }
+
+        /* Panel Header Tabs */
+        .panel-tabs {
+            display: flex;
+            background: #f8fafc;
+            border-bottom: 1px solid var(--border-color);
+            padding: 0 8px;
+            flex-shrink: 0;
+        }
+
+        .tab {
+            padding: 12px 16px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .tab.active {
+            color: var(--black);
+            border-bottom-color: var(--orange);
+        }
+
+        .panel-content {
+            flex: 1;
+            padding: 24px;
+            overflow-y: auto;
+            line-height: 1.6;
+        }
+
+        /* Left Side Content Styles */
+        .prob-header {
+            font-size: 1.6rem;
+            font-weight: 800;
+            margin-bottom: 12px;
+            letter-spacing: -0.5px;
+        }
+
+        .meta-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 24px;
+            align-items: center;
+        }
+
+        .diff-badge {
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 30px;
+            text-transform: capitalize;
+        }
+
+        .diff-badge.easy { background: #e6f4ea; color: var(--easy); }
+        .diff-badge.medium { background: #fef7e0; color: var(--medium); }
+        .diff-badge.hard { background: #fce8e6; color: var(--hard); }
+
+        .statement {
+            font-size: 0.95rem;
+            color: var(--text-main);
+            margin-bottom: 24px;
+            white-space: pre-line;
+            line-height: 1.7;
+        }
+
+        .statement strong {
+            color: var(--black);
+            font-weight: 700;
+        }
+
+        /* LeetCode style container boxes for examples */
+        .example-card {
+            background: #f8fafc;
+            border-left: 4px solid #cbd5e1;
+            border-radius: 4px 8px 8px 4px;
+            padding: 16px;
+            margin: 20px 0;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .example-heading {
+            font-weight: 700;
+            font-size: 0.9rem;
+            color: var(--text-main);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .example-body {
+            font-family: 'Fira Code', Consolas, monospace;
+            font-size: 0.9rem;
+            color: #334155;
+            line-height: 1.5;
+            white-space: pre-wrap;
+        }
+
+        /* Constraint box wrapper */
+        .constraints-box {
+            background: #fffbeb;
+            border: 1px solid #fef3c7;
+            border-radius: 8px;
+            padding: 16px;
+            margin-top: 24px;
+        }
+
+        .constraints-heading {
+            font-weight: 700;
+            color: #b45309;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+        }
+
+        /* =========================
+           RIGHT SIDE - CODE WORKSPACE
+        ========================= */
+        .right-layout {
+            display: grid;
+            grid-template-rows: 1.5fr 1fr; /* 60% Editor, 40% Console */
+            gap: 8px;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        .editor-wrapper {
+            flex: 1;
+            position: relative;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        #editorContainer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Testcase Runner Area */
+        .testcase-content {
+            background: var(--bg-panels);
+            padding: 20px 24px;
+        }
+
+        .case-selectors {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .case-node {
+            padding: 6px 14px;
+            background: #f1f3f5;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .case-node.active {
+            background: var(--black);
+            color: var(--white);
+        }
+
+        .param-label {
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+            text-transform: uppercase;
+        }
+
+        .param-field {
+            width: 100%;
+            padding: 12px 14px;
+            background: #f8fafc;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 0.9rem;
+            margin-bottom: 14px;
+            outline: none;
+        }
+    </style>
+</head>
+
+<body>
+
+    <nav class="workspace-nav">
+        <div class="nav-left">
+            <a id="smartBackBtn" href="#" class="back-btn" onclick="goBackSmart(event)"><i class="fas fa-chevron-left"></i> <span id="backBtnText">Back to Problems</span></a>
+            <div class="logo-brand" style="margin-left: 12px;">Algo<span>Mentor</span></div>
+        </div>
+
+        <div class="nav-center">
+            <select class="lang-select" id="langSelect" onchange="changeLanguage()">
+                <option value="javascript">JavaScript</option>
+                <option value="python">Python</option>
+                <option value="cpp">C++</option>
+                <option value="java">Java</option> 
+            </select>
+        </div>
+
+      <div class="nav-actions">
+    <button type="button" class="btn btn-run" onclick="runCode(event)"><i class="fas fa-play"></i> Run</button>
+    <button type="button" class="btn btn-submit" onclick="submitCode(event)"><i class="fas fa-paper-plane"></i> Submit</button>
+    <button type="button" class="btn btn-visualize" onclick="visualizeCode(event)" style="background: linear-gradient(135deg, #6366f1, #a855f7); color: #fff; border: none; font-weight: 600; padding: 6px 14px; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s; box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);"><i class="fas fa-magic"></i> Visualize</button>
+</div>
+    </nav>
+
+    <main class="workspace-container">
+
+        <section class="panel">
+            <div class="panel-tabs">
+                <div class="tab active" id="leftTabDescription" onclick="switchLeftTab('description')"><i class="far fa-file-alt"></i> Description</div>
+                <div class="tab" id="leftTabHints" onclick="switchLeftTab('hints')"><i class="far fa-lightbulb"></i> Hints</div>
+                <div class="tab" id="leftTabSubmissions" onclick="switchLeftTab('submissions')"><i class="fas fa-history"></i> Submissions</div>
+            </div>
+            <div class="panel-content">
+                <div id="panelDescriptionView">
+                    <h1 class="prob-header" id="probTitle">---</h1>
+                    <div class="meta-row" style="display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 14px;">
+                        <span id="probDifficulty" class="diff-badge">---</span>
+                        <span id="probUserStatusBadge" style="display: none; padding: 2px 10px; border-radius: 6px; font-size: 0.8rem; font-weight: 600;"></span>
+                        <span style="font-size: 0.85rem; color: var(--text-muted); font-weight: 500;"><i class="far fa-clock"></i> Live Query</span>
+                    </div>
+                    <div class="statement" id="probDescription">
+                        Reading problem specifications directly out of the connected database instance...
+                    </div>
+                    
+                    <div id="probComplexityBox" style="margin-top: 24px; padding: 14px 16px; background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 8px;">
+                        <div style="font-size: 0.85rem; font-weight: 700; color: #38bdf8; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px; display: flex; align-items: center; gap: 6px;">
+                            <i class="fas fa-bolt"></i> Algorithmic Complexity Standards
+                        </div>
+                        <div style="display: flex; flex-wrap: wrap; gap: 16px; align-items: center;">
+                            <div>
+                                <span style="font-size: 0.78rem; color: #94a3b8; display: block; margin-bottom: 3px;">Target Time</span>
+                                <span id="probExpectedTimeBadge" style="padding: 3px 10px; border-radius: 6px; font-family: monospace; font-size: 0.85rem; font-weight: 700; background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); display: inline-block;">⏱️ O(?)</span>
+                            </div>
+                            <div>
+                                <span style="font-size: 0.78rem; color: #94a3b8; display: block; margin-bottom: 3px;">Target Space</span>
+                                <span id="probExpectedSpaceBadge" style="padding: 3px 10px; border-radius: 6px; font-family: monospace; font-size: 0.85rem; font-weight: 700; background: rgba(168, 85, 247, 0.15); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.3); display: inline-block;">💾 O(?)</span>
+                            </div>
+                            <div style="border-left: 1px solid #334155; padding-left: 16px; margin-left: 4px;">
+                                <span style="font-size: 0.78rem; color: #94a3b8; display: block; margin-bottom: 3px;">Your Best Achieved</span>
+                                <span id="probBestComplexityBadge" style="padding: 3px 10px; border-radius: 6px; font-family: monospace; font-size: 0.85rem; font-weight: 700; background: rgba(148, 163, 184, 0.1); color: #94a3b8; border: 1px solid rgba(148, 163, 184, 0.3); display: inline-block;">🏆 Not Solved Yet</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="panelHintsView" style="display: none;">
+                    <h2 style="font-size: 1.1rem; color: #f1f5f9; margin-bottom: 12px; font-weight: 600;"><i class="far fa-lightbulb" style="color: var(--orange);"></i> Problem Hints & Guidelines</h2>
+                    <div id="probHintsContent" style="color: #cbd5e1; line-height: 1.6; font-size: 0.95rem;">
+                        No hints available for this problem yet.
+                    </div>
+                </div>
+
+                <div id="panelSubmissionsView" style="display: none;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+                        <h2 style="font-size: 1.1rem; color: #f1f5f9; font-weight: 600; margin: 0;"><i class="fas fa-history" style="color: var(--blue);"></i> Past Attempts (Limit 20)</h2>
+                        <button onclick="loadSubmissionHistory()" class="btn" style="padding: 4px 10px; font-size: 0.8rem; background: #1f242d; color: #cbd5e1; border: 1px solid #334155; border-radius: 6px; cursor: pointer;"><i class="fas fa-sync-alt"></i> Refresh</button>
+                    </div>
+                    <div id="submissionsListContainer">
+                        <div style="color: var(--text-muted); padding: 20px 0; text-align: center;">Click Submissions to load your recent evaluation history...</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="right-layout">
+            
+            <section class="panel">
+                <div class="panel-tabs">
+                    <div class="tab active"><i class="fas fa-code"></i> Code</div>
+                </div>
+                <div class="editor-wrapper">
+                    <div id="editorContainer"></div>
+                </div>
+            </section>
+
+            <section class="panel">
+                <div class="panel-tabs">
+                    <div class="tab active" id="tabTestcase" onclick="switchConsoleTab('testcase')"><i class="fas fa-terminal"></i> Test Cases</div>
+                    <div class="tab" id="tabResults" onclick="switchConsoleTab('results')"><i class="fas fa-poll-h"></i> Results</div>
+                    <div class="tab" id="tabVisualizer" onclick="navigateVisualizer()" style="color: #818cf8; font-weight: 600;"><i class="fas fa-magic"></i> Visualization</div>
+                </div>
+                <div class="panel-content testcase-content">
+                    
+                    <div id="testcaseView">
+                        <div class="case-selectors">
+                            <div class="case-node active">Case 1</div>
+                            <div class="case-node">Case 2</div>
+                            <div class="case-node">Case 3</div>
+                        </div>
+                        
+                        <div class="param-label">Input Parameter Matchers</div>
+                        <input type="text" class="param-field" id="testCaseInput" value="[2,7,11,15], target = 9" readonly>
+                    </div>
+
+                    <div id="resultsView" style="display: none;">
+                        <div id="resultsHeaderBox" style="margin-bottom: 12px; display: none;">
+                            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                                <span id="resultsStatusBadge" style="font-size: 1.1rem; font-weight: 700; padding: 6px 14px; border-radius: 8px; display: inline-flex; align-items: center; gap: 6px;"></span>
+                                <span id="resultsMetaInfo" style="font-size: 0.85rem; color: var(--text-muted); font-weight: 600;"></span>
+                            </div>
+                            <div id="resultsComplexityCard" style="display: none; background: #16181d; border: 1px solid #2d3748; border-radius: 8px; padding: 10px 14px; margin-top: 8px;">
+                                <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin-bottom: 6px;">
+                                    <div style="display: flex; align-items: center; gap: 8px;">
+                                        <span style="font-size: 0.75rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px;">Time Complexity:</span>
+                                        <span id="resultsTimeBadge" style="font-family: monospace; font-size: 0.85rem; font-weight: 700; padding: 3px 8px; border-radius: 6px; background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3);">O(?)</span>
+                                    </div>
+                                    <div style="display: flex; align-items: center; gap: 8px;">
+                                        <span style="font-size: 0.75rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px;">Space Complexity:</span>
+                                        <span id="resultsSpaceBadge" style="font-family: monospace; font-size: 0.85rem; font-weight: 700; padding: 3px 8px; border-radius: 6px; background: rgba(168, 85, 247, 0.15); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.3);">O(?)</span>
+                                    </div>
+                                </div>
+                                <div id="resultsComplexityTip" style="font-size: 0.82rem; color: #cbd5e1; line-height: 1.4; border-top: 1px solid #232730; padding-top: 6px; display: none;"></div>
+                            </div>
+                        </div>
+
+                        <div id="resultsCaseTabsBox" style="display: none; margin-bottom: 14px;">
+                            <div class="case-selectors" id="resultsCaseSelectors" style="flex-wrap: wrap; gap: 6px;"></div>
+                        </div>
+
+                        <div id="resultsCaseDetailsBox" style="display: none;">
+                            <div class="param-label" style="color: var(--text-muted);">Input</div>
+                            <pre id="resInputBox" class="param-field" style="background: #181a1f; color: #e2e8f0; margin-bottom: 12px; white-space: pre-wrap; word-break: break-all; font-family: monospace; padding: 10px; border-radius: 6px; border: 1px solid #2d3748;"></pre>
+                            
+                            <div class="param-label" style="color: var(--text-muted);">Output</div>
+                            <pre id="resOutputBox" class="param-field" style="background: #181a1f; color: #e2e8f0; margin-bottom: 12px; white-space: pre-wrap; word-break: break-all; font-family: monospace; padding: 10px; border-radius: 6px; border: 1px solid #2d3748;"></pre>
+                            
+                            <div class="param-label" style="color: var(--text-muted);">Expected</div>
+                            <pre id="resExpectedBox" class="param-field" style="background: #181a1f; color: #e2e8f0; margin-bottom: 12px; white-space: pre-wrap; word-break: break-all; font-family: monospace; padding: 10px; border-radius: 6px; border: 1px solid #2d3748;"></pre>
+                        </div>
+
+                        <div id="resultsConsoleContainer">
+                            <div class="param-label" id="rawOutputLabel" style="color: var(--orange);">Execution Engine Output</div>
+                            <textarea id="resultsDisplay" class="param-field" style="height: 110px; font-family: monospace; background: #0f1115; color: #a9dc76; resize: none; white-space: pre-wrap; line-height: 1.5; padding: 12px; width:100%; border-radius:8px;" readonly>Click "Run" to evaluate your solution parameters...</textarea>
+                        </div>
+                    </div>
+
+                    <div id="visualizerView" style="display: none; height: 100%;"></div>
+
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs/loader.min.js"></script>
+    <script>
+        let editor;
+        let currentProblem = null;
+        let parsedTestCasesArray = []; 
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const problemId = urlParams.get('id') || 1; 
+        const fromPage = urlParams.get('from');
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const backBtnText = document.getElementById('backBtnText');
+            if (backBtnText) {
+                if (fromPage === 'recommendations.html' || (document.referrer && document.referrer.includes('recommendations.html'))) {
+                    backBtnText.innerText = 'Back to Recommendations';
+                } else if (fromPage === 'dashboard.html' || (document.referrer && document.referrer.includes('dashboard.html'))) {
+                    backBtnText.innerText = 'Back to Dashboard';
+                } else if (fromPage === 'progress.html' || (document.referrer && document.referrer.includes('progress.html'))) {
+                    backBtnText.innerText = 'Back to Progress';
+                } else if (fromPage === 'profile.html' || (document.referrer && document.referrer.includes('profile.html'))) {
+                    backBtnText.innerText = 'Back to Profile';
+                } else {
+                    backBtnText.innerText = 'Back to Problems';
+                }
+            }
+        });
+
+        function goBackSmart(event) {
+            if (event) event.preventDefault();
+            if (fromPage && ['recommendations.html', 'dashboard.html', 'progress.html', 'problems.html', 'profile.html'].includes(fromPage)) {
+                window.location.href = fromPage;
+                return;
+            }
+            if (document.referrer && document.referrer.includes(window.location.host) && !document.referrer.includes('workspace.html')) {
+                window.history.back();
+                return;
+            }
+            window.location.href = 'problems.html';
+        }
+
+        require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs' } });
+
+        require(['vs/editor/editor.main'], function () {
+            editor = monaco.editor.create(document.getElementById('editorContainer'), {
+                value: `// Select your language to start code generation...`,
+                language: 'javascript',
+                theme: 'vs', 
+                fontSize: 14,
+                fontFamily: "'Fira Code', Consolas, Monaco, monospace",
+                automaticLayout: true,
+                minimap: { enabled: false },
+                lineNumbers: "on",
+                scrollbar: { vertical: "visible", horizontal: "visible" },
+                padding: { top: 12 }
+            });
+
+            fetchProblemData();
+        });
+
+        function getProblemParameters() {
+            if (parsedTestCasesArray && parsedTestCasesArray.length > 0 && parsedTestCasesArray[0]) {
+                const inputStr = String(parsedTestCasesArray[0]);
+                const matches = [];
+                const regex = /([a-zA-Z0-9_]+)\s*=/g;
+                let match;
+                while ((match = regex.exec(inputStr)) !== null) {
+                    if (match[1] && !matches.includes(match[1])) {
+                        matches.push(match[1]);
+                    }
+                }
+                if (matches.length > 0) return matches;
+            }
+            // Fallback default
+            return ["nums", "target"];
+        }
+
+        function changeLanguage() {
+            if (!editor || !currentProblem) return;
+            
+            const selectedLang = document.getElementById("langSelect").value;
+            const model = editor.getModel();
+            
+            monaco.editor.setModelLanguage(model, selectedLang);
+            
+            // 1. If database problem record has explicit starter_code for this problem & language, use it!
+            if (currentProblem.starter_code) {
+                let codeToUse = null;
+                try {
+                    const parsedObj = JSON.parse(currentProblem.starter_code);
+                    if (parsedObj && parsedObj[selectedLang]) codeToUse = parsedObj[selectedLang];
+                } catch (e) {
+                    if (typeof currentProblem.starter_code === 'string' && currentProblem.starter_code.trim().length > 0) {
+                        if (selectedLang === 'javascript' && currentProblem.starter_code.includes('function ')) codeToUse = currentProblem.starter_code;
+                        else if (selectedLang === 'python' && currentProblem.starter_code.includes('def ')) codeToUse = currentProblem.starter_code;
+                        else if (selectedLang === 'cpp' && currentProblem.starter_code.includes('class Solution')) codeToUse = currentProblem.starter_code;
+                        else if (selectedLang === 'java' && currentProblem.starter_code.includes('class Solution')) codeToUse = currentProblem.starter_code;
+                    }
+                }
+                if (codeToUse) {
+                    editor.setValue(codeToUse);
+                    return;
+                }
+            }
+
+            // 2. Otherwise dynamically generate boilerplate exact to the problem parameters!
+            const title = currentProblem.title || "solution";
+            const params = getProblemParameters();
+            const paramStr = params.join(', ');
+            const camelName = toCamelCase(title);
+            const snakeName = toSnakeCase(title);
+
+            const dynamicBoilerplates = {
+                javascript: `function ${camelName}(${paramStr}) {\n    // Write your JavaScript solution here...\n};`,
+                python: `def ${snakeName}(${paramStr}):\n    # Write your Python solution here...\n    pass`,
+                cpp: `class Solution {\npublic:\n    auto ${camelName}(${paramStr}) {\n        // Write your C++ solution here...\n    }\n};`,
+                java: `class Solution {\n    public Object ${camelName}(${paramStr}) {\n        // Write your Java solution here...\n        return null;\n    }\n}`
+            };
+
+            editor.setValue(dynamicBoilerplates[selectedLang] || dynamicBoilerplates.javascript);
+        }
+
+       function fetchProblemData() {
+    fetch(`http://localhost:5000/api/problems/${problemId}`)
+        .then(res => {
+            if (!res.ok) throw new Error(`Status failed: ${res.status}`);
+            return res.json();
+        })
+        .then(problemData => {
+            currentProblem = problemData;
+            populateWorkspace(problemData);
+        })
+        .catch(err => {
+            console.error("Error connecting to workspace API:", err);
+            document.getElementById('probTitle').innerText = "Data Query Connection Error";
+        });
+}
+
+function populateWorkspace(prob) {
+    // Set titles and descriptions
+    document.getElementById('probTitle').innerText = prob.title || "Problem Details";
+    document.getElementById('probDifficulty').innerText = prob.difficulty || "Easy";
+    document.getElementById('probDescription').innerHTML = prob.description || "No description provided.";
+    const hintsEl = document.getElementById('probHintsContent');
+    if (hintsEl) {
+        if (prob.hints) hintsEl.innerHTML = prob.hints;
+        else if (prob.meta_data && prob.meta_data.hints) hintsEl.innerHTML = prob.meta_data.hints;
+        else hintsEl.innerHTML = "No specific hints available for this problem yet. Try analyzing the edge cases and time complexity requirements!";
+    }
+    
+    // Handle difficulty badge styling color options
+    const diffBadge = document.getElementById('probDifficulty');
+    if (prob.difficulty === 'Medium') {
+        diffBadge.className = 'px-2 py-1 text-xs font-semibold rounded bg-amber-500/10 text-amber-500';
+    } else if (prob.difficulty === 'Hard') {
+        diffBadge.className = 'px-2 py-1 text-xs font-semibold rounded bg-rose-500/10 text-rose-500';
+    } else {
+        diffBadge.className = 'px-2 py-1 text-xs font-semibold rounded bg-emerald-500/10 text-emerald-500';
+    }
+
+    const expectedTimeEl = document.getElementById('probExpectedTimeBadge');
+    const expectedSpaceEl = document.getElementById('probExpectedSpaceBadge');
+    const bestBadgeEl = document.getElementById('probBestComplexityBadge');
+    if (bestBadgeEl) {
+        bestBadgeEl.innerHTML = `🏆 Not Solved Yet`;
+        bestBadgeEl.style.color = `#94a3b8`;
+        bestBadgeEl.style.background = `rgba(148, 163, 184, 0.1)`;
+        bestBadgeEl.style.borderColor = `rgba(148, 163, 184, 0.3)`;
+    }
+
+    if (expectedTimeEl && prob.expected_time_complexity) {
+        expectedTimeEl.textContent = `⏱️ ${prob.expected_time_complexity}`;
+    } else if (expectedTimeEl) {
+        expectedTimeEl.textContent = `⏱️ O(?)`;
+    }
+    if (expectedSpaceEl && prob.expected_space_complexity) {
+        expectedSpaceEl.textContent = `💾 ${prob.expected_space_complexity}`;
+    } else if (expectedSpaceEl) {
+        expectedSpaceEl.textContent = `💾 O(?)`;
+    }
+
+    const statusBadgeEl = document.getElementById('probUserStatusBadge');
+    if (statusBadgeEl) {
+        statusBadgeEl.style.display = 'none';
+        let activeUserId = null;
+        try {
+            const userSession = JSON.parse(localStorage.getItem('user'));
+            if (userSession && userSession.id) activeUserId = userSession.id;
+        } catch(e) {}
+
+        if (activeUserId) {
+            fetch(`http://localhost:5000/api/submissions/problem/${prob.id}?userId=${activeUserId}`)
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success && data.submissions && data.submissions.length > 0) {
+                        const hasAccepted = data.submissions.some(s => s.status === 'Accepted');
+                        if (hasAccepted) {
+                            statusBadgeEl.innerHTML = `<i class="fas fa-check-circle"></i> Solved`;
+                            statusBadgeEl.style.background = 'rgba(34, 197, 94, 0.15)';
+                            statusBadgeEl.style.color = '#4ade80';
+                            statusBadgeEl.style.border = '1px solid #22c55e';
+                            statusBadgeEl.style.display = 'inline-flex';
+                            statusBadgeEl.style.alignItems = 'center';
+                            statusBadgeEl.style.gap = '5px';
+
+                            if (bestBadgeEl) {
+                                const acceptedSubs = data.submissions.filter(s => s.status === 'Accepted');
+                                const rankOrder = { 'O(1)': 1, 'O(log n)': 2, 'O(n)': 3, 'O(n log n)': 4, 'O(n^2)': 5, 'O(n^3)': 6, 'O(2^n)': 7, 'O(n!)': 8 };
+                                let bestTime = 'O(?)', bestSpace = 'O(1)', bestRank = 999;
+                                acceptedSubs.forEach(s => {
+                                    const tc = s.time_complexity || 'O(?)';
+                                    const sc = s.space_complexity || 'O(1)';
+                                    const rank = rankOrder[tc] || 50;
+                                    if (rank < bestRank) {
+                                        bestRank = rank;
+                                        bestTime = tc;
+                                        bestSpace = sc;
+                                    }
+                                });
+                                if (bestTime !== 'O(?)') {
+                                    bestBadgeEl.innerHTML = `<i class="fas fa-trophy" style="color: #facc15;"></i> Best: ⏱️ ${bestTime} • 💾 ${bestSpace}`;
+                                    bestBadgeEl.style.color = `#4ade80`;
+                                    bestBadgeEl.style.background = `rgba(34, 197, 94, 0.15)`;
+                                    bestBadgeEl.style.borderColor = `rgba(34, 197, 94, 0.4)`;
+                                }
+                            }
+                        } else {
+                            statusBadgeEl.innerHTML = `<i class="fas fa-dot-circle"></i> Attempted`;
+                            statusBadgeEl.style.background = 'rgba(234, 179, 8, 0.15)';
+                            statusBadgeEl.style.color = '#facc15';
+                            statusBadgeEl.style.border = '1px solid #eab308';
+                            statusBadgeEl.style.display = 'inline-flex';
+                            statusBadgeEl.style.alignItems = 'center';
+                            statusBadgeEl.style.gap = '5px';
+                            if (bestBadgeEl) {
+                                bestBadgeEl.innerHTML = `⚠️ Attempted (Not Solved)`;
+                                bestBadgeEl.style.color = `#facc15`;
+                                bestBadgeEl.style.background = `rgba(234, 179, 8, 0.15)`;
+                                bestBadgeEl.style.borderColor = `rgba(234, 179, 8, 0.4)`;
+                            }
+                        }
+                    }
+                }).catch(() => {});
+        }
+    }
+
+    // --- TEST CASES PARSING SECTION ---
+    parsedTestCasesArray = []; 
+    currentProblem.test_cases_parsed = []; // Create reference container for runCode()
+
+    let rawTestCases = prob.test_cases ? prob.test_cases.trim() : "";
+
+    if (rawTestCases) {
+        let parsedWithJSON = false;
+        try {
+            let parsedTCs = JSON.parse(rawTestCases);
+            if (Array.isArray(parsedTCs) && parsedTCs.length > 0 && parsedTCs[0].input !== undefined) {
+                parsedTCs.forEach(tc => {
+                    let finalInputVal = typeof tc.input === 'string' ? tc.input : JSON.stringify(tc.input);
+                    let finalOutputVal = typeof tc.output === 'string' ? tc.output : (tc.expected !== undefined ? (typeof tc.expected === 'string' ? tc.expected : JSON.stringify(tc.expected)) : "[]");
+                    parsedTestCasesArray.push(finalInputVal);
+                    currentProblem.test_cases_parsed.push({
+                        input: finalInputVal,
+                        output: finalOutputVal
+                    });
+                });
+                parsedWithJSON = true;
+            }
+        } catch(e) {}
+
+        if (!parsedWithJSON && (rawTestCases.includes("input") || rawTestCases.includes("'input'") || rawTestCases.includes('"input"'))) {
+            let textBlocks = rawTestCases.split(/\}\s*,?\s*\{/);
+
+            textBlocks.forEach(block => {
+                let cleanBlock = block.replace(/^\[\s*\{|\}\s*\]$/g, '').trim();
+                
+                let inputRegex = /(?:"input"|'input'|input)\s*:\s*(.*?)(?=,\s*(?:"output"|'output'|output)|$)/s;
+                let outputRegex = /(?:"output"|'output'|output)\s*:\s*(.*?)$/s;
+                
+                let matchInput = cleanBlock.match(inputRegex);
+                let matchOutput = cleanBlock.match(outputRegex);
+                
+                if (matchInput && matchInput[1]) {
+                    let finalInputVal = matchInput[1].trim().replace(/^['"]|['"]$/g, '');
+                    let finalOutputVal = matchOutput && matchOutput[1] 
+                        ? matchOutput[1].trim().replace(/^['"]|['"]$/g, '') 
+                        : "[]";
+
+                    parsedTestCasesArray.push(finalInputVal);
+
+                    currentProblem.test_cases_parsed.push({
+                        input: finalInputVal,
+                        output: finalOutputVal
+                    });
+                }
+            });
+        }
+    }
+
+    if (parsedTestCasesArray.length === 0) {
+        if (rawTestCases) {
+            parsedTestCasesArray.push(rawTestCases);
+            currentProblem.test_cases_parsed.push({ input: rawTestCases, output: "[]" });
+        } else {
+            const fallbackInput = "nums = [3,3], target = 6";
+            parsedTestCasesArray.push(fallbackInput); 
+            currentProblem.test_cases_parsed.push({ input: fallbackInput, output: "[0, 1]" });
+        }
+    }
+
+    currentProblem.all_test_cases = currentProblem.test_cases_parsed;
+    currentProblem.sample_test_cases = currentProblem.test_cases_parsed.slice(0, Math.min(3, currentProblem.test_cases_parsed.length));
+
+    window.parsedTestCases = parsedTestCasesArray;
+
+    setupTestCaseTabs();
+    changeLanguage();
+}
+
+        function setupTestCaseTabs() {
+            const caseSelectorContainer = document.querySelector('#testcaseView .case-selectors');
+            const testCaseInputEl = document.getElementById('testCaseInput');
+
+            if (caseSelectorContainer) {
+                caseSelectorContainer.innerHTML = '';
+                const count = Math.min(3, parsedTestCasesArray.length || 1);
+                for (let i = 0; i < count; i++) {
+                    const node = document.createElement('div');
+                    node.className = `case-node ${i === 0 ? 'active' : ''}`;
+                    node.setAttribute('data-idx', i);
+                    node.textContent = `Case ${i + 1}`;
+                    node.addEventListener('click', function() {
+                        document.querySelectorAll('#testcaseView .case-selectors .case-node').forEach(n => n.classList.remove('active'));
+                        this.classList.add('active');
+                        const targetIdx = parseInt(this.getAttribute('data-idx'), 10);
+                        if (parsedTestCasesArray && parsedTestCasesArray[targetIdx]) {
+                            testCaseInputEl.value = parsedTestCasesArray[targetIdx];
+                        } else {
+                            testCaseInputEl.value = `Case ${targetIdx + 1} data not provided yet.`;
+                        }
+                    });
+                    caseSelectorContainer.appendChild(node);
+                }
+            }
+
+            if (parsedTestCasesArray.length > 0 && testCaseInputEl) {
+                testCaseInputEl.value = parsedTestCasesArray[0];
+            }
+        }
+
+        function toCamelCase(str) {
+            return str.toLowerCase().replace(/[^a-zA-Z0-9]+(.)/g, (m, chr) => chr.toUpperCase());
+        }
+
+        function toSnakeCase(str) {
+            return str.toLowerCase().replace(/[\s-]+/g, '_').replace(/[^a-z0-9_]/g, '');
+        }
+
+        // Left Panel Tab Switching Handler Function
+        function switchLeftTab(tabName) {
+            const tabDesc = document.getElementById('leftTabDescription');
+            const tabHints = document.getElementById('leftTabHints');
+            const tabSubs = document.getElementById('leftTabSubmissions');
+            const viewDesc = document.getElementById('panelDescriptionView');
+            const viewHints = document.getElementById('panelHintsView');
+            const viewSubs = document.getElementById('panelSubmissionsView');
+
+            if (tabDesc && tabDesc.classList) tabDesc.classList.remove('active');
+            if (tabHints && tabHints.classList) tabHints.classList.remove('active');
+            if (tabSubs && tabSubs.classList) tabSubs.classList.remove('active');
+            if (viewDesc && viewDesc.style) viewDesc.style.display = 'none';
+            if (viewHints && viewHints.style) viewHints.style.display = 'none';
+            if (viewSubs && viewSubs.style) viewSubs.style.display = 'none';
+
+            if (tabName === 'description') {
+                if (tabDesc) tabDesc.classList.add('active');
+                if (viewDesc) viewDesc.style.display = 'block';
+            } else if (tabName === 'hints') {
+                if (tabHints) tabHints.classList.add('active');
+                if (viewHints) viewHints.style.display = 'block';
+            } else if (tabName === 'submissions') {
+                if (tabSubs) tabSubs.classList.add('active');
+                if (viewSubs) viewSubs.style.display = 'block';
+                loadSubmissionHistory();
+            }
+        }
+
+        function loadSubmissionHistory() {
+            const container = document.getElementById('submissionsListContainer');
+            if (!container) return;
+            container.innerHTML = `<div style="color: var(--text-muted); padding: 20px 0; text-align: center;"><i class="fas fa-spinner fa-spin"></i> Loading recent submissions...</div>`;
+
+            let activeUserId = null;
+            try {
+                const userSession = JSON.parse(localStorage.getItem('user'));
+                if (userSession && userSession.id) activeUserId = userSession.id;
+            } catch(e) {}
+
+            fetch(`http://localhost:5000/api/submissions/problem/${problemId}?userId=${activeUserId || 'null'}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (!data.success || !data.submissions || data.submissions.length === 0) {
+                        container.innerHTML = `<div style="color: var(--text-muted); padding: 30px 15px; text-align: center; background: #13161c; border-radius: 8px; border: 1px dashed #2d3748;">
+                            <i class="fas fa-inbox" style="font-size: 1.5rem; margin-bottom: 8px; display: block; color: #475569;"></i>
+                            No submissions recorded for this problem yet. Click "Submit" to evaluate and save your code!
+                        </div>`;
+                        return;
+                    }
+
+                    container.innerHTML = '';
+                    data.submissions.forEach((sub, idx) => {
+                        const card = document.createElement('div');
+                        card.style.background = "#13161c";
+                        card.style.border = "1px solid #222733";
+                        card.style.borderRadius = "8px";
+                        card.style.padding = "12px 14px";
+                        card.style.marginBottom = "10px";
+                        card.style.display = "flex";
+                        card.style.flexDirection = "column";
+                        card.style.gap = "8px";
+
+                        const isAcc = sub.status === 'Accepted';
+                        const badgeColor = isAcc ? "#22c55e" : "#ef4444";
+                        const badgeBg = isAcc ? "rgba(34, 197, 94, 0.1)" : "rgba(239, 68, 68, 0.1)";
+                        const badgeIcon = isAcc ? "fa-check-circle" : "fa-times-circle";
+
+                        const dateStr = sub.submitted_at ? new Date(sub.submitted_at).toLocaleString() : 'Just now';
+                        const timeStr = sub.execution_time_ms ? `${Number(sub.execution_time_ms).toFixed(1)} ms` : '-- ms';
+
+                        const timeComp = sub.time_complexity || sub.best_time_complexity || 'O(?)';
+                        const spaceComp = sub.space_complexity || sub.best_space_complexity || 'O(?)';
+
+                        card.innerHTML = `
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <span style="background: ${badgeBg}; color: ${badgeColor}; border: 1px solid ${badgeColor}; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: 600; display: inline-flex; align-items: center; gap: 5px;">
+                                        <i class="fas ${badgeIcon}"></i> ${sub.status || 'Submitted'}
+                                    </span>
+                                    <span style="background: #1f242d; color: #94a3b8; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem; text-transform: uppercase; font-weight: 600;">
+                                        ${sub.language || 'JS'}
+                                    </span>
+                                </div>
+                                <span style="color: #64748b; font-size: 0.8rem;">${dateStr}</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; font-size: 0.82rem; color: #cbd5e1; padding-top: 6px; border-top: 1px solid #1f242d;">
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <span><i class="far fa-clock" style="color: var(--orange);"></i> Runtime: <strong>${timeStr}</strong></span>
+                                    <span style="background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); padding: 1px 6px; border-radius: 4px; font-family: monospace; font-size: 0.75rem; font-weight: 700;" title="Time Complexity">⏱️ ${timeComp}</span>
+                                    <span style="background: rgba(168, 85, 247, 0.15); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.3); padding: 1px 6px; border-radius: 4px; font-family: monospace; font-size: 0.75rem; font-weight: 700;" title="Space Complexity">💾 ${spaceComp}</span>
+                                </div>
+                                <button class="btn-load-sub" data-idx="${idx}" style="background: transparent; color: var(--blue); border: none; cursor: pointer; font-size: 0.82rem; font-weight: 500; padding: 2px 6px;"><i class="fas fa-code"></i> Load Code</button>
+                            </div>
+                        `;
+
+                        card.querySelector('.btn-load-sub').addEventListener('click', () => {
+                            if (editor && sub.code) {
+                                
+                                    editor.setValue(sub.code);
+                                    const langSelect = document.getElementById("langSelect");
+                                    if (langSelect && sub.language) {
+                                        langSelect.value = sub.language.toLowerCase();
+                                        monaco.editor.setModelLanguage(editor.getModel(), sub.language.toLowerCase());
+                                    
+                                    if(window.showToast) window.showToast("Previous submission loaded.", "success");
+                                }
+                            }
+                        });
+
+                        container.appendChild(card);
+                    });
+                })
+                .catch(err => {
+                    console.error("Error loading submissions:", err);
+                    container.innerHTML = `<div style="color: #ef4444; padding: 20px 0; text-align: center;">Failed to load submission history from database.</div>`;
+                });
+        }
+
+        // Console Tab Switching Handler Function
+        function switchConsoleTab(tabName) {
+            const tabTestcase = document.getElementById('tabTestcase');
+            const tabResults = document.getElementById('tabResults');
+            const tabVisualizer = document.getElementById('tabVisualizer');
+            const testcaseView = document.getElementById('testcaseView');
+            const resultsView = document.getElementById('resultsView');
+            const visualizerView = document.getElementById('visualizerView');
+
+            if (tabTestcase) tabTestcase.classList.remove('active');
+            if (tabResults) tabResults.classList.remove('active');
+            if (tabVisualizer) tabVisualizer.classList.remove('active');
+            if (testcaseView) testcaseView.style.display = 'none';
+            if (resultsView) resultsView.style.display = 'none';
+            if (visualizerView) visualizerView.style.display = 'none';
+
+            if (tabName === 'testcase') {
+                if (tabTestcase) tabTestcase.classList.add('active');
+                if (testcaseView) testcaseView.style.display = 'block';
+            } else if (tabName === 'results') {
+                if (tabResults) tabResults.classList.add('active');
+                if (resultsView) resultsView.style.display = 'block';
+            } else if (tabName === 'visualizer') {
+                if (tabVisualizer) tabVisualizer.classList.add('active');
+                if (visualizerView) {
+                    visualizerView.style.display = 'block';
+                    if (typeof initVisualizerUI === 'function') initVisualizerUI();
+                }
+            }
+        }
+function renderExecutionResults(resultData, mode) {
+    const resultsHeaderBox = document.getElementById('resultsHeaderBox');
+    const resultsStatusBadge = document.getElementById('resultsStatusBadge');
+    const resultsMetaInfo = document.getElementById('resultsMetaInfo');
+    const resultsCaseTabsBox = document.getElementById('resultsCaseTabsBox');
+    const resultsCaseSelectors = document.getElementById('resultsCaseSelectors');
+    const resultsCaseDetailsBox = document.getElementById('resultsCaseDetailsBox');
+    const resultsConsoleContainer = document.getElementById('resultsConsoleContainer');
+    const resultsContainer = document.getElementById('resultsDisplay');
+
+    // Default to showing console, hiding tabs
+    resultsHeaderBox.style.display = 'none';
+    resultsCaseTabsBox.style.display = 'none';
+    resultsCaseDetailsBox.style.display = 'none';
+    resultsConsoleContainer.style.display = 'block';
+
+    if (!resultData || !resultData.success) {
+        resultsContainer.style.color = "#ef4444"; 
+        resultsContainer.value = `[Status]: Evaluation Crash\n\n${resultData ? resultData.error : 'Unknown execution error'}`;
+        return;
+    }
+
+    // Check if we have structured caseResults or verdict
+    const hasStructuredCases = resultData.caseResults && Array.isArray(resultData.caseResults) && resultData.caseResults.length > 0;
+    const outputLines = (resultData.output || '').split('\n');
+    const statusType = outputLines[0] ? outputLines[0].trim() : '';
+
+    if (statusType === "RUNTIME_ERROR" || resultData.verdict === "Runtime Error" || resultData.verdict === "Compilation Error") {
+        resultsHeaderBox.style.display = 'block';
+        resultsStatusBadge.innerHTML = `<i class="fas fa-exclamation-triangle"></i> ${resultData.verdict || 'Runtime Error'}`;
+        resultsStatusBadge.style.background = "#7f1d1d";
+        resultsStatusBadge.style.color = "#f87171";
+        resultsStatusBadge.style.border = "1px solid #ef4444";
+        resultsMetaInfo.textContent = "Execution crashed during evaluation";
+
+        resultsContainer.style.color = "#ef4444";
+        resultsContainer.value = statusType === "RUNTIME_ERROR" ? outputLines.slice(1).join('\n') : (resultData.error || resultData.output || '');
+        return;
+    }
+
+    if (hasStructuredCases) {
+        resultsHeaderBox.style.display = 'block';
+        const allPassed = resultData.allPassed || resultData.verdict === "Accepted" || statusType === "SUCCESS_ALL";
+        const passedCount = resultData.passedCases !== undefined ? resultData.passedCases : resultData.caseResults.filter(c => c.passed).length;
+        const totalCount = resultData.totalCases !== undefined ? resultData.totalCases : resultData.caseResults.length;
+
+        if (allPassed) {
+            resultsStatusBadge.innerHTML = `<i class="fas fa-check-circle"></i> Accepted`;
+            resultsStatusBadge.style.background = "#14532d";
+            resultsStatusBadge.style.color = "#4ade80";
+            resultsStatusBadge.style.border = "1px solid #22c55e";
+            resultsMetaInfo.textContent = `All ${totalCount} test cases passed!`;
+
+            if (mode === 'submit') {
+                const statusBadgeEl = document.getElementById('probUserStatusBadge');
+                if (statusBadgeEl) {
+                    statusBadgeEl.innerHTML = `<i class="fas fa-check-circle"></i> Solved`;
+                    statusBadgeEl.style.background = 'rgba(34, 197, 94, 0.15)';
+                    statusBadgeEl.style.color = '#4ade80';
+                    statusBadgeEl.style.border = '1px solid #22c55e';
+                    statusBadgeEl.style.display = 'inline-flex';
+                    statusBadgeEl.style.alignItems = 'center';
+                    statusBadgeEl.style.gap = '5px';
+                }
+            }
+        } else {
+            resultsStatusBadge.innerHTML = `<i class="fas fa-times-circle"></i> Wrong Answer`;
+            resultsStatusBadge.style.background = "#7f1d1d";
+            resultsStatusBadge.style.color = "#f87171";
+            resultsStatusBadge.style.border = "1px solid #ef4444";
+            resultsMetaInfo.textContent = `${passedCount}/${totalCount} cases passed${resultData.firstFailedCase ? ` (Failed at Case ${resultData.firstFailedCase})` : ''}`;
+
+            if (mode === 'submit') {
+                const statusBadgeEl = document.getElementById('probUserStatusBadge');
+                if (statusBadgeEl && !statusBadgeEl.innerHTML.includes('Solved')) {
+                    statusBadgeEl.innerHTML = `<i class="fas fa-dot-circle"></i> Attempted`;
+                    statusBadgeEl.style.background = 'rgba(234, 179, 8, 0.15)';
+                    statusBadgeEl.style.color = '#facc15';
+                    statusBadgeEl.style.border = '1px solid #eab308';
+                    statusBadgeEl.style.display = 'inline-flex';
+                    statusBadgeEl.style.alignItems = 'center';
+                    statusBadgeEl.style.gap = '5px';
+                }
+            }
+        }
+
+        resultsCaseTabsBox.style.display = 'block';
+        resultsCaseDetailsBox.style.display = 'block';
+        resultsCaseSelectors.style.maxHeight = "130px";
+        resultsCaseSelectors.style.overflowY = "auto";
+        resultsCaseSelectors.style.padding = "4px 0";
+
+        resultsCaseSelectors.innerHTML = '';
+        resultData.caseResults.forEach((c, i) => {
+            const pill = document.createElement('div');
+            pill.className = `case-node`;
+            pill.setAttribute('data-res-idx', i);
+            pill.style.padding = "4px 10px";
+            pill.style.fontSize = "0.85rem";
+            pill.style.display = "inline-flex";
+            pill.style.alignItems = "center";
+            pill.style.gap = "6px";
+            pill.style.cursor = "pointer";
+            pill.style.borderRadius = "6px";
+
+            if (c.passed) {
+                pill.innerHTML = `Case ${c.case || (i + 1)} <span style="color: #4ade80;">●</span>`;
+            } else {
+                pill.innerHTML = `Case ${c.case || (i + 1)} <span style="color: #f87171;">●</span>`;
+            }
+
+            pill.addEventListener('click', () => {
+                selectResultCase(i, resultData.caseResults);
+            });
+            resultsCaseSelectors.appendChild(pill);
+        });
+
+        // Determine which case to select initially
+        let autoIdx = 0;
+        if (!allPassed && resultData.firstFailedCase && resultData.firstFailedCase > 0) {
+            autoIdx = resultData.firstFailedCase - 1;
+        } else {
+            const firstFail = resultData.caseResults.findIndex(c => !c.passed);
+            if (firstFail !== -1) autoIdx = firstFail;
+        }
+
+        selectResultCase(autoIdx, resultData.caseResults);
+
+        // Hide console unless there is raw stdout/stderr extra logs
+        if (resultData.stdout && resultData.stdout.trim()) {
+            resultsConsoleContainer.style.display = 'block';
+            resultsContainer.style.color = "#a9dc76";
+            resultsContainer.value = resultData.stdout.trim();
+        } else {
+            resultsConsoleContainer.style.display = 'none';
+        }
+    } else {
+        // Fallback for simple string outputs if no structured cases
+        if (statusType === "SUCCESS_ALL" || resultData.verdict === "Accepted") {
+            resultsHeaderBox.style.display = 'block';
+            resultsStatusBadge.innerHTML = `<i class="fas fa-check-circle"></i> Accepted`;
+            resultsStatusBadge.style.background = "#14532d";
+            resultsStatusBadge.style.color = "#4ade80";
+            resultsStatusBadge.style.border = "1px solid #22c55e";
+            resultsMetaInfo.textContent = `All test cases passed!`;
+            resultsContainer.style.color = "#22c55e";
+            resultsContainer.value = resultData.output || "Accepted ✔";
+        } else if (statusType === "MISMATCH") {
+            resultsHeaderBox.style.display = 'block';
+            resultsStatusBadge.innerHTML = `<i class="fas fa-times-circle"></i> Wrong Answer`;
+            resultsStatusBadge.style.background = "#7f1d1d";
+            resultsStatusBadge.style.color = "#f87171";
+            resultsStatusBadge.style.border = "1px solid #ef4444";
+            resultsContainer.style.color = "#ef4444";
+            resultsContainer.value = `[Status]: Wrong Answer ❌\n\n[Failed Sample Case]:\nInput:    ${outputLines[1] || ''}\nOutput:   ${outputLines[2] || ''}\nExpected: ${outputLines[3] || ''}`;
+        } else {
+            resultsContainer.style.color = "#22c55e";
+            resultsContainer.value = resultData.output || '';
+        }
+    }
+
+    const compCard = document.getElementById('resultsComplexityCard');
+    const timeBadge = document.getElementById('resultsTimeBadge');
+    const spaceBadge = document.getElementById('resultsSpaceBadge');
+    const compTip = document.getElementById('resultsComplexityTip');
+
+    if (compCard && resultData && resultData.complexityAnalysis && resultsHeaderBox.style.display !== 'none') {
+        compCard.style.display = 'block';
+        if (timeBadge) {
+            timeBadge.textContent = resultData.complexityAnalysis.timeComplexity || 'O(?)';
+            if ((resultData.complexityAnalysis.timeComplexity || '').includes('^2') || (resultData.complexityAnalysis.timeComplexity || '').includes('2^')) {
+                timeBadge.style.background = 'rgba(234, 179, 8, 0.15)';
+                timeBadge.style.color = '#facc15';
+                timeBadge.style.border = '1px solid rgba(234, 179, 8, 0.4)';
+            } else {
+                timeBadge.style.background = 'rgba(56, 189, 248, 0.15)';
+                timeBadge.style.color = '#38bdf8';
+                timeBadge.style.border = '1px solid rgba(56, 189, 248, 0.3)';
+            }
+        }
+        if (spaceBadge) {
+            spaceBadge.textContent = resultData.complexityAnalysis.spaceComplexity || 'O(?)';
+        }
+        if (compTip && resultData.complexityAnalysis.feedback) {
+            compTip.innerHTML = resultData.complexityAnalysis.feedback;
+            compTip.style.display = 'block';
+        } else if (compTip) {
+            compTip.style.display = 'none';
+        }
+    } else if (compCard) {
+        compCard.style.display = 'none';
+    }
+}
+
+function selectResultCase(idx, casesArray) {
+    if (!casesArray || !casesArray[idx]) return;
+    const c = casesArray[idx];
+    document.querySelectorAll('#resultsCaseSelectors .case-node').forEach((el, i) => {
+        if (i === idx) {
+            el.style.background = c.passed ? "#166534" : "#991b1b";
+            el.style.color = "#ffffff";
+            el.style.fontWeight = "700";
+            el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        } else {
+            el.style.background = "#1f242d";
+            el.style.color = "#cbd5e1";
+            el.style.fontWeight = "500";
+        }
+    });
+
+    document.getElementById('resInputBox').textContent = c.input || '';
+    document.getElementById('resOutputBox').textContent = c.output || '';
+    document.getElementById('resExpectedBox').textContent = c.expected || '';
+}
+
+function getSelectedLanguageAndCode() {
+    const userCode = editor.getValue();
+    let selectedLanguage = document.getElementById("langSelect").value;
+    if (/^\s*class\s+Solution\s*:/m.test(userCode) || /^\s*def\s+[a-zA-Z0-9_]+\s*\(/m.test(userCode) || /\bdef\s+[a-zA-Z0-9_]+\s*\(self\b/.test(userCode)) {
+        selectedLanguage = 'python';
+        document.getElementById("langSelect").value = 'python';
+        monaco.editor.setModelLanguage(editor.getModel(), 'python');
+    } else if (/^\s*#include\s+</m.test(userCode) || /\bvector\s*</.test(userCode) || /\bstd::/.test(userCode) || /^\s*public\s*:/m.test(userCode)) {
+        selectedLanguage = 'cpp';
+        document.getElementById("langSelect").value = 'cpp';
+        monaco.editor.setModelLanguage(editor.getModel(), 'cpp');
+    } else if (/\bpublic\s+class\s+Solution\b/.test(userCode) || /\bSystem\.out\.print/.test(userCode)) {
+        selectedLanguage = 'java';
+        document.getElementById("langSelect").value = 'java';
+        monaco.editor.setModelLanguage(editor.getModel(), 'java');
+    } else if (/^\s*function\s+[a-zA-Z0-9_]+\s*\(/m.test(userCode) || /^\s*(var|let|const)\s+/m.test(userCode) || /\bconsole\.log\b/.test(userCode) || (/\bclass\s+Solution\s*\{/m.test(userCode) && (/\b(let|const|var)\s+/.test(userCode) || /===|!==/.test(userCode) || /\bthis\./.test(userCode)))) {
+        selectedLanguage = 'javascript';
+        document.getElementById("langSelect").value = 'javascript';
+        monaco.editor.setModelLanguage(editor.getModel(), 'javascript');
+    }
+    return { userCode, selectedLanguage };
+}
+
+function runCode(e) {
+    if (e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+
+    switchConsoleTab('results');
+    const resultsContainer = document.getElementById('resultsDisplay');
+    document.getElementById('resultsHeaderBox').style.display = 'none';
+    document.getElementById('resultsCaseTabsBox').style.display = 'none';
+    document.getElementById('resultsCaseDetailsBox').style.display = 'none';
+    document.getElementById('resultsConsoleContainer').style.display = 'block';
+    resultsContainer.value = "Evaluating sample test cases (Run Mode)...";
+    resultsContainer.style.color = "#eab308";
+
+    try {
+        const { userCode, selectedLanguage } = getSelectedLanguageAndCode();
+        if (!currentProblem) {
+            resultsContainer.style.color = "#ef4444";
+            resultsContainer.value = "Error: Problem metadata has not finished downloading.";
+            return false;
+        }
+
+        const methodName = toCamelCase(currentProblem.title);
+        let sampleCases = [];
+        if (currentProblem.sample_test_cases && currentProblem.sample_test_cases.length > 0) {
+            sampleCases = currentProblem.sample_test_cases;
+        } else if (currentProblem.test_cases_parsed && currentProblem.test_cases_parsed.length > 0) {
+            sampleCases = currentProblem.test_cases_parsed.slice(0, Math.min(3, currentProblem.test_cases_parsed.length));
+        } else {
+            const fallbackInput = document.getElementById('testCaseInput').value;
+            sampleCases = [{ input: fallbackInput, output: "[]" }];
+        }
+
+        fetch('http://localhost:5000/api/problems/run', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                problemId: currentProblem.id,
+                language: selectedLanguage,
+                code: userCode,
+                methodName: methodName,
+                testCases: sampleCases,
+                meta_data: currentProblem.meta_data || null,
+                mode: 'run'
+            })
+        })
+        .then(res => res.json())
+        .then(resultData => {
+            renderExecutionResults(resultData, 'run');
+        })
+        .catch(err => {
+            console.error("Run error:", err);
+            resultsContainer.style.color = "#ef4444";
+            resultsContainer.value = "System Error: Failed to communicate with backend compilation engine.";
+        });
+    } catch (err) {
+        console.error("Crash inside runCode:", err);
+        resultsContainer.style.color = "#ef4444";
+        resultsContainer.value = `[UI Error]: ${err.message}`;
+    }
+    return false;
+}
+
+function submitCode(e) {
+    if (e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+
+    switchConsoleTab('results');
+    const resultsContainer = document.getElementById('resultsDisplay');
+    document.getElementById('resultsHeaderBox').style.display = 'none';
+    document.getElementById('resultsCaseTabsBox').style.display = 'none';
+    document.getElementById('resultsCaseDetailsBox').style.display = 'none';
+    document.getElementById('resultsConsoleContainer').style.display = 'block';
+    resultsContainer.value = "Running all test cases against evaluation engine (Submit Mode)...";
+    resultsContainer.style.color = "#eab308";
+
+    try {
+        const { userCode, selectedLanguage } = getSelectedLanguageAndCode();
+        if (!currentProblem) {
+            resultsContainer.style.color = "#ef4444";
+            resultsContainer.value = "Error: Problem metadata has not finished downloading.";
+            return false;
+        }
+
+        const methodName = toCamelCase(currentProblem.title);
+        let allCases = [];
+        if (currentProblem.all_test_cases && currentProblem.all_test_cases.length > 0) {
+            allCases = currentProblem.all_test_cases;
+        } else if (currentProblem.test_cases_parsed && currentProblem.test_cases_parsed.length > 0) {
+            allCases = currentProblem.test_cases_parsed;
+        } else {
+            const fallbackInput = document.getElementById('testCaseInput').value;
+            allCases = [{ input: fallbackInput, output: "[]" }];
+        }
+
+        let activeUserId = null;
+        try {
+            const userSession = JSON.parse(localStorage.getItem('user'));
+            if (userSession && userSession.id) activeUserId = userSession.id;
+        } catch(e) {}
+
+        fetch('http://localhost:5000/api/problems/submit', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                problemId: currentProblem.id,
+                language: selectedLanguage,
+                code: userCode,
+                methodName: methodName,
+                testCases: allCases,
+                meta_data: currentProblem.meta_data || null,
+                userId: activeUserId,
+                mode: 'submit'
+            })
+        })
+        .then(res => res.json())
+        .then(resultData => {
+            renderExecutionResults(resultData, 'submit');
+        })
+        .catch(err => {
+            console.error("Submit error:", err);
+            resultsContainer.style.color = "#ef4444";
+            resultsContainer.value = "System Error: Failed to communicate with backend evaluation engine.";
+        });
+    } catch (err) {
+        console.error("Crash inside submitCode:", err);
+        resultsContainer.style.color = "#ef4444";
+        resultsContainer.value = `[UI Error]: ${err.message}`;
+    }
+    return false;
+}
+    </script>
+    <script src="visualizer-embed.js"></script>
+    <script>
+function navigateVisualizer() {
+    const statusEl = document.getElementById('resultsStatusBadge');
+    const isAccepted = statusEl && statusEl.textContent.trim().toLowerCase() === 'accepted';
+    
+    if (isAccepted) {
+        if (window.editor) {
+            const currentCode = window.editor.getValue();
+            let methodName = '';
+            // Match python def, js function, or java/cpp method
+            const pyMatch = currentCode.match(/def\s+([a-zA-Z0-9_]+)\s*\(/);
+            const jsMatch = currentCode.match(/function\s+([a-zA-Z0-9_]+)\s*\(/);
+            const genericMatch = currentCode.match(/[a-zA-Z0-9_]+\s+([a-zA-Z0-9_]+)\s*\([^)]*\)\s*\{/);
+            
+            if (pyMatch) methodName = pyMatch[1];
+            else if (jsMatch) methodName = jsMatch[1];
+            else if (genericMatch) methodName = genericMatch[1];
+            
+            sessionStorage.setItem('visualizer_auto_code', currentCode);
+            if (methodName) {
+                sessionStorage.setItem('visualizer_auto_method', methodName);
+            }
+        }
+        window.open('visualizer.html', '_self');
+    } else {
+        if (window.showToast) {
+            window.showToast("Visualization is only available after your code is Accepted!", "error");
+        }
+    }
+}
+</script>
+</body>
+</html>

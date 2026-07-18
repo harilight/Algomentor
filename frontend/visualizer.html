@@ -1,0 +1,2973 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Code Visualizer | AlgoMentor</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Fira+Code:wght@400;500;600&display=swap');
+
+        :root {
+            --bg-main: #0f1115;
+            --bg-sidebar: #13161c;
+            --bg-card: #181b22;
+            --bg-panel: #1e222b;
+            --border-color: #2a2f3d;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --orange: #FF6B00;
+            --orange-hover: #e05e00;
+            --orange-light: rgba(255, 107, 0, 0.12);
+            --orange-glow: rgba(255, 107, 0, 0.35);
+            --green: #22c55e;
+            --blue: #3b82f6;
+            --purple: #8b5cf6;
+            --red: #ef4444;
+            --radius: 12px;
+            --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-main);
+            color: var(--text-primary);
+            display: flex;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* ========================
+           SIDEBAR STYLING
+        ======================== */
+        .sidebar {
+            width: 260px;
+            background: var(--bg-sidebar);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            padding: 2rem 1.5rem;
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            z-index: 100;
+        }
+
+        .sidebar .logo {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--text-primary);
+            margin-bottom: 3rem;
+            padding-left: 4px;
+        }
+
+        .sidebar .logo span {
+            color: var(--orange);
+        }
+
+        .sidebar ul {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .sidebar ul li {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.85rem 1rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+            font-size: 0.95rem;
+            border-radius: var(--radius);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .sidebar ul li:hover {
+            background: var(--orange-light);
+            color: var(--orange);
+            transform: translateX(3px);
+        }
+
+        .sidebar ul li.active {
+            background: var(--orange);
+            color: #ffffff;
+            font-weight: 700;
+            box-shadow: 0 4px 14px rgba(255, 107, 0, 0.3);
+        }
+
+        .sidebar ul li i {
+            width: 20px;
+            text-align: center;
+            font-size: 1.1rem;
+        }
+
+        /* ========================
+           MAIN CONTENT WORKSPACE
+        ======================== */
+        .main-content {
+            margin-left: 260px;
+            width: calc(100vw - 260px);
+            min-height: 100vh;
+            padding: 24px 32px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        /* Top Header */
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            gap: 16px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .page-header::after {
+            content: '';
+            position: absolute;
+            top: -50px;
+            right: -50px;
+            width: 180px;
+            height: 180px;
+            background: radial-gradient(circle, rgba(255,107,0,0.18) 0%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        .header-left h1 {
+            font-size: 1.8rem;
+            font-weight: 800;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .header-left p {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+
+        .template-bar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .template-bar span {
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-right: 4px;
+        }
+
+        .tpl-btn {
+            background: #1f242d;
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .tpl-btn:hover, .tpl-btn.active {
+            background: var(--orange-light);
+            color: var(--orange);
+            border-color: var(--orange);
+            transform: translateY(-2px);
+        }
+
+        /* ========================
+           SPLIT STUDIO WORKSPACE
+        ======================== */
+        .studio-grid {
+            display: grid;
+            grid-template-columns: 1fr 1.15fr;
+            gap: 24px;
+            flex: 1;
+        }
+
+        @media (max-width: 1250px) {
+            .studio-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Left Column: Editor & Config */
+        .panel-box {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 20px;
+            background: rgba(255, 255, 255, 0.02);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .panel-header h3 {
+            font-size: 1rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-primary);
+        }
+
+        .editor-toolbar {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .lang-select {
+            background: #12151c;
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            outline: none;
+            cursor: pointer;
+        }
+
+        .config-row {
+            display: grid;
+            grid-template-columns: 1fr 1.5fr;
+            gap: 14px;
+            padding: 16px 20px;
+            background: #14171f;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .input-group label {
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .config-input {
+            background: #0f1115;
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.85rem;
+            outline: none;
+            transition: var(--transition);
+        }
+
+        .config-input:focus {
+            border-color: var(--orange);
+            box-shadow: 0 0 0 2px var(--orange-light);
+        }
+
+        #monacoEditorBox {
+            flex: 1;
+            min-height: 420px;
+            width: 100%;
+            background: #0f1115;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .fallback-code-editor {
+            flex: 1;
+            width: 100%;
+            min-height: 420px;
+            background: #0f1115;
+            color: #f8fafc;
+            font-family: 'Fira Code', Consolas, Monaco, monospace;
+            font-size: 14px;
+            line-height: 1.6;
+            padding: 16px;
+            border: none;
+            outline: none;
+            resize: vertical;
+            border-radius: 8px;
+            tab-size: 4;
+            white-space: pre;
+            overflow: auto;
+        }
+        .fallback-code-editor:focus {
+            box-shadow: inset 0 0 0 1px #38bdf8;
+        }
+
+        .editor-footer {
+            padding: 14px 20px;
+            background: #14171f;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .status-pill {
+            font-size: 0.8rem;
+            font-weight: 700;
+            padding: 6px 12px;
+            border-radius: 20px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #1f242d;
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
+        }
+
+        .status-pill.tracing {
+            background: rgba(59, 130, 246, 0.15);
+            color: #60a5fa;
+            border-color: rgba(59, 130, 246, 0.4);
+        }
+
+        .status-pill.completed {
+            background: rgba(34, 197, 94, 0.15);
+            color: #4ade80;
+            border-color: rgba(34, 197, 94, 0.4);
+        }
+
+        .status-pill.error {
+            background: rgba(239, 68, 68, 0.15);
+            color: #f87171;
+            border-color: rgba(239, 68, 68, 0.4);
+        }
+
+        .btn-trace {
+            background: linear-gradient(135deg, var(--orange) 0%, #ea580c 100%);
+            color: #ffffff;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 10px;
+            font-size: 0.95rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: var(--transition);
+            box-shadow: 0 4px 16px rgba(255, 107, 0, 0.3);
+        }
+
+        .btn-trace:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 107, 0, 0.45);
+        }
+
+        /* Right Column: Interactive Scrubber & Diagnostics */
+        .controls-card {
+            background: var(--bg-panel);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 16px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .scrubber-row {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .scrubber-label {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--orange);
+            white-space: nowrap;
+            min-width: 100px;
+        }
+
+        .trace-slider {
+            flex: 1;
+            -webkit-appearance: none;
+            height: 8px;
+            border-radius: 4px;
+            background: #0f1115;
+            outline: none;
+            border: 1px solid var(--border-color);
+        }
+
+        .trace-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--orange);
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(255, 107, 0, 0.6);
+            border: 2px solid #ffffff;
+            transition: transform 0.1s;
+        }
+
+        .trace-slider::-webkit-slider-thumb:hover {
+            transform: scale(1.15);
+        }
+
+        .playback-buttons {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 6px;
+        }
+
+        .btn-ctrl {
+            background: #14171f;
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-ctrl:hover:not(:disabled) {
+            background: var(--orange-light);
+            color: var(--orange);
+            border-color: var(--orange);
+        }
+
+        .btn-ctrl:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .btn-ctrl.primary {
+            background: var(--orange);
+            color: #ffffff;
+            border-color: var(--orange);
+        }
+
+        .btn-ctrl.primary:hover:not(:disabled) {
+            background: var(--orange-hover);
+        }
+
+        .speed-select {
+            background: #14171f;
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            padding: 6px 10px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            outline: none;
+            cursor: pointer;
+        }
+
+        /* Diagnostic Tabs */
+        .diag-tabs {
+            display: flex;
+            background: #14171f;
+            border-bottom: 1px solid var(--border-color);
+            padding: 0 16px;
+            gap: 4px;
+        }
+
+        .diag-tab {
+            padding: 12px 18px;
+            font-size: 0.88rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .diag-tab:hover {
+            color: var(--text-primary);
+        }
+
+        .diag-tab.active {
+            color: var(--orange);
+            border-bottom-color: var(--orange);
+        }
+
+        .diag-content {
+            padding: 20px;
+            flex: 1;
+            overflow-y: auto;
+            max-height: 460px;
+            min-height: 380px;
+        }
+
+        /* Call Stack & Scope View */
+        .frame-box {
+            background: #13161c;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 14px 16px;
+            margin-bottom: 12px;
+            border-left: 4px solid var(--orange);
+        }
+
+        .frame-title {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 700;
+            font-size: 0.95rem;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+
+        .frame-line {
+            font-family: 'Fira Code', monospace;
+            font-size: 0.8rem;
+            background: rgba(255, 107, 0, 0.15);
+            color: var(--orange);
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+
+        .frame-vars {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .var-chip {
+            background: #1e222b;
+            border: 1px solid var(--border-color);
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.82rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .var-chip.modified {
+            border-color: #22c55e;
+            background: rgba(34, 197, 94, 0.12);
+            color: #4ade80;
+            animation: pulseChip 0.6s ease;
+        }
+
+        @keyframes pulseChip {
+            0% { transform: scale(0.95); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        /* Variable Table */
+        .var-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .var-table th {
+            text-align: left;
+            padding: 10px 14px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            border-bottom: 1px solid var(--border-color);
+            background: #14171f;
+        }
+
+        .var-table td {
+            padding: 12px 14px;
+            font-size: 0.88rem;
+            border-bottom: 1px solid rgba(42, 47, 61, 0.5);
+            font-family: 'Fira Code', monospace;
+        }
+
+        .type-badge {
+            font-size: 0.72rem;
+            padding: 2px 6px;
+            border-radius: 4px;
+            background: #252b36;
+            color: #cbd5e1;
+            font-weight: 600;
+        }
+
+        /* Console Output */
+        .console-box {
+            background: #0f1115;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 16px;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.88rem;
+            line-height: 1.6;
+            color: #a9dc76;
+            min-height: 280px;
+            white-space: pre-wrap;
+        }
+
+        /* Data Structure Canvas */
+        .canvas-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .ds-section-title {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            margin-bottom: 10px;
+        }
+
+        .array-grid {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            padding: 14px;
+            background: #14171f;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+        }
+
+        .array-cell {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-width: 54px;
+        }
+
+        .array-idx {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+            font-family: 'Fira Code', monospace;
+        }
+
+        .array-val {
+            width: 50px;
+            height: 50px;
+            background: #1e222b;
+            border: 2px solid var(--border-color);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Fira Code', monospace;
+            font-weight: 700;
+            font-size: 1rem;
+            color: var(--text-primary);
+            transition: var(--transition);
+        }
+
+        .array-val.active-idx {
+            border-color: var(--orange);
+            background: rgba(255, 107, 0, 0.18);
+            color: #ffffff;
+            box-shadow: 0 0 12px var(--orange-glow);
+            transform: scale(1.08);
+        }
+
+        .map-cards {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .map-card {
+            background: #14171f;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 10px 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-family: 'Fira Code', monospace;
+        }
+
+        .map-key {
+            color: var(--orange);
+            font-weight: 700;
+        }
+
+        .map-arrow {
+            color: var(--text-muted);
+        }
+
+        .map-val {
+            color: #4ade80;
+            font-weight: 700;
+        }
+
+        .svg-canvas-box {
+            background: #101319;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 16px;
+            width: 100%;
+            min-height: 250px;
+            overflow-x: auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Active Line Highlight Decoration in Monaco */
+        .myLineDecoration {
+            background: rgba(255, 107, 0, 0.22) !important;
+            border-left: 4px solid var(--orange) !important;
+        }
+
+        .myGlyphDecoration {
+            background: var(--orange);
+            border-radius: 50%;
+            width: 10px !important;
+            height: 10px !important;
+            margin-left: 5px;
+            margin-top: 5px;
+        }
+
+        .canvas-viewport::-webkit-scrollbar {
+            width: 14px;
+            height: 14px;
+        }
+        .canvas-viewport::-webkit-scrollbar-track {
+            background: #11141d;
+            border-radius: 8px;
+        }
+        .canvas-viewport::-webkit-scrollbar-thumb {
+            background: #282f42;
+            border: 3px solid #11141d;
+            border-radius: 8px;
+        }
+        .canvas-viewport::-webkit-scrollbar-thumb:hover {
+            background: var(--orange);
+        }
+
+        /* Flowchart Styles */
+        .flow-node-card {
+            background: #161a24;
+            border: 2px solid #333a4c;
+            border-radius: 12px;
+            padding: 14px 20px;
+            min-width: 220px;
+            max-width: 480px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
+        .flow-node-card.type-start {
+            border-color: #10b981;
+            background: rgba(16, 185, 129, 0.1);
+            border-radius: 50px;
+            font-weight: 700;
+            color: #4ade80;
+        }
+        .flow-node-card.type-decision {
+            border-color: #f59e0b;
+            background: rgba(245, 158, 11, 0.1);
+            border-radius: 4px;
+            transform: rotate(-1deg);
+            color: #fcd34d;
+            font-weight: 600;
+        }
+        .flow-node-card.type-loop {
+            border-color: #06b6d4;
+            background: rgba(6, 182, 212, 0.1);
+            color: #67e8f9;
+            font-weight: 600;
+        }
+        .flow-node-card.type-return {
+            border-color: #ec4899;
+            background: rgba(236, 72, 153, 0.1);
+            border-radius: 50px;
+            color: #f472b6;
+            font-weight: 700;
+        }
+        .flow-node-card.type-op {
+            border-color: #3b82f6;
+            background: rgba(59, 130, 246, 0.1);
+            color: #93c5fd;
+        }
+        .flow-node-card.active-flow {
+            border: 2px solid #ff6b00 !important;
+            background: rgba(255, 107, 0, 0.2) !important;
+            box-shadow: 0 0 25px rgba(255, 107, 0, 0.7) !important;
+            transform: scale(1.05) !important;
+            z-index: 10;
+        }
+        .flow-connector {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: var(--text-muted);
+            font-size: 1.1rem;
+            margin: 4px 0;
+            font-weight: 700;
+        }
+    
+/* ========================
+   INTERACTIVE DOMAIN BACKGROUND
+======================== */
+.interactive-domain-bg {
+    position: fixed;
+    top: 0;
+    left: 260px;
+    width: calc(100vw - 260px);
+    height: 100vh;
+    z-index: 0;
+    pointer-events: none;
+    overflow: hidden;
+    background: var(--bg-main);
+}
+
+.domain-blob {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(95px);
+    opacity: 0.24;
+    transition: all 0.3s ease;
+}
+
+.blob-indigo {
+    width: 500px;
+    height: 500px;
+    background: #6366f1;
+    top: -120px;
+    left: 5%;
+    animation: floatDomainBlob1 24s infinite alternate ease-in-out;
+}
+
+.blob-orange {
+    width: 450px;
+    height: 450px;
+    background: var(--orange);
+    top: 18%;
+    right: -90px;
+    animation: floatDomainBlob2 28s infinite alternate ease-in-out;
+}
+
+.blob-cyan {
+    width: 480px;
+    height: 480px;
+    background: #38bdf8;
+    bottom: -130px;
+    left: 28%;
+    animation: floatDomainBlob3 26s infinite alternate ease-in-out;
+}
+
+.blob-pink {
+    width: 400px;
+    height: 400px;
+    background: #ec4899;
+    bottom: 22%;
+    right: 18%;
+    animation: floatDomainBlob4 30s infinite alternate ease-in-out;
+}
+
+@keyframes floatDomainBlob1 {
+    0% { transform: translate(0, 0) scale(1); }
+    50% { transform: translate(150px, 100px) scale(1.18); }
+    100% { transform: translate(-50px, 170px) scale(0.95); }
+}
+@keyframes floatDomainBlob2 {
+    0% { transform: translate(0, 0) scale(1); }
+    50% { transform: translate(-170px, 120px) scale(1.22); }
+    100% { transform: translate(-90px, -70px) scale(1.05); }
+}
+@keyframes floatDomainBlob3 {
+    0% { transform: translate(0, 0) scale(1); }
+    50% { transform: translate(130px, -140px) scale(1.15); }
+    100% { transform: translate(-110px, -60px) scale(0.92); }
+}
+@keyframes floatDomainBlob4 {
+    0% { transform: translate(0, 0) scale(1); }
+    50% { transform: translate(-130px, -100px) scale(1.2); }
+    100% { transform: translate(90px, 70px) scale(1); }
+}
+
+.interactive-mouse-glow {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    background: radial-gradient(650px circle at var(--mouse-x, -1000px) var(--mouse-y, -1000px), rgba(255, 107, 0, 0.095), rgba(99, 102, 241, 0.055), transparent 60%);
+    opacity: 0;
+    transition: opacity 0.5s ease;
+}
+
+.domain-network-canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    opacity: 0.6;
+}
+
+/* Ensure main UI sits clearly above the background with rich glassmorphism */
+.main-content {
+    position: relative;
+    z-index: 10;
+}
+
+.page-header, .panel-box {
+    background: rgba(24, 27, 34, 0.84) !important;
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.35) !important;
+}
+
+</style>
+</head>
+<body>
+
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+        <div class="logo">
+            Algo<span>Mentor</span>
+        </div>
+        <ul>
+            <li onclick="window.location.href='dashboard.html'">
+                <i class="fas fa-columns"></i>
+                Dashboard
+            </li>
+            <li onclick="window.location.href='problems.html'">
+                <i class="fas fa-code"></i>
+                Problems
+            </li>
+            <li onclick="window.location.href='progress.html'">
+                <i class="fas fa-chart-bar"></i>
+                Progress
+            </li>
+            <li>
+                <i class="fas fa-robot"></i>
+                AI Mentor
+            </li>
+            <li onclick="window.location.href='recommendations.html'">
+                <i class="fas fa-lightbulb"></i>
+                Recommendations
+            </li>
+            <li class="active" onclick="window.location.href='visualizer.html'">
+                <i class="fas fa-magic"></i>
+                Visualizer Engine
+            </li>
+            <li onclick="window.location.href='profile.html'">
+                <i class="fas fa-user-circle"></i>
+                Profile
+            </li>
+            <li onclick="logout()">
+                <i class="fas fa-sign-out-alt"></i>
+                Logout
+            </li>
+        </ul>
+    </aside>
+
+    <!-- Main Workspace -->
+    <!-- Interactive Domain-Themed Background (Moving Blurred Orbs + Interactive Network Mesh) -->
+<div id="interactiveDomainBg" class="interactive-domain-bg">
+    <div class="domain-blob blob-indigo"></div>
+    <div class="domain-blob blob-orange"></div>
+    <div class="domain-blob blob-cyan"></div>
+    <div class="domain-blob blob-pink"></div>
+    <div id="interactiveMouseGlow" class="interactive-mouse-glow"></div>
+    <canvas id="domainNetworkCanvas" class="domain-network-canvas"></canvas>
+</div>
+
+<main class="main-content">
+        <!-- Page Header -->
+        <header class="page-header animate__animated animate__fadeInDown">
+            <div class="header-left">
+                <h1><i class="fas fa-magic" style="color: var(--orange);"></i> Interactive Code & AST Visualizer</h1>
+                <p>Execute algorithms with step-by-step frame inspection, variable memory diffing, and dynamic data structure rendering.</p>
+            </div>
+            <div class="template-bar">
+                <span>⚡ Load Template:</span>
+                <button class="tpl-btn" onclick="loadTemplate('twoSum')"><i class="fas fa-hashtag"></i> Two Sum</button>
+                <button class="tpl-btn" onclick="loadTemplate('binarySearch')"><i class="fas fa-search"></i> Binary Search</button>
+                <button class="tpl-btn" onclick="loadTemplate('fibonacci')"><i class="fas fa-project-diagram"></i> Fibonacci DP</button>
+                <button class="tpl-btn" onclick="loadTemplate('mergeSort')"><i class="fas fa-sort-amount-down"></i> Bubble / Merge Sort</button>
+            </div>
+        </header>
+
+        <!-- Studio Split Workspace -->
+        <div class="studio-grid animate__animated animate__fadeInUp">
+            
+            <!-- Left Pane: Editor & Execution Configuration -->
+            <div class="panel-box">
+                <div class="panel-header">
+                    <h3><i class="fas fa-terminal" style="color: var(--orange);"></i> Code Execution Studio</h3>
+                    <div class="editor-toolbar">
+                        <select id="langSelect" class="lang-select" onchange="handleLangChange()">
+                            <option value="python">Python 3 (Tracing Engine)</option>
+                            <option value="javascript">JavaScript (Live Simulator)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Parameters Config Row -->
+                <div class="config-row">
+                    <div class="input-group">
+                        <label><i class="fas fa-cube"></i> Target Function</label>
+                        <input type="text" id="funcNameInput" class="config-input" onkeydown="if(event.key === 'Enter') triggerExecutionTrace()" value="two_sum" placeholder="e.g. two_sum">
+                    </div>
+                    <div class="input-group">
+                        <label><i class="fas fa-sliders-h"></i> Target Arguments (Comma Separated)</label>
+                        <input type="text" id="funcArgsInput" class="config-input" onkeydown="if(event.key === 'Enter') triggerExecutionTrace()" value="[2, 7, 11, 15], 9" placeholder="e.g. [2, 7, 11, 15], 9">
+                    </div>
+                </div>
+
+                <!-- Monaco Editor Container -->
+                <div id="monacoEditorBox">
+                    <textarea id="fallbackCodeEditor" class="fallback-code-editor" spellcheck="false" placeholder="Write or paste your Python / JavaScript algorithm here..." onkeydown="handleFallbackTab(event)">def two_sum(nums, target):
+    lookup = {}
+    for i, num in enumerate(nums):
+        diff = target - num
+        if diff in lookup:
+            return [lookup[diff], i]
+        lookup[num] = i
+    return []</textarea>
+                </div>
+
+                <div class="editor-footer">
+                    <div id="statusPill" class="status-pill">
+                        <i class="fas fa-check-circle"></i> Ready to trace
+                    </div>
+                    <button class="btn-trace" onclick="triggerExecutionTrace()">
+                        <i class="fas fa-play"></i> Trace & Visualize Execution
+                    </button>
+                </div>
+            </div>
+
+            <!-- Right Pane: Timeline Scrubber & Diagnostics Studio -->
+            <div class="panel-box">
+                <div class="panel-header">
+                    <h3><i class="fas fa-microchip" style="color: #38bdf8;"></i> Execution Scrubber & Diagnostics</h3>
+                    <span id="stepCounterBadge" style="font-size: 0.85rem; font-weight: 700; color: var(--orange); background: var(--orange-light); padding: 4px 12px; border-radius: 20px; border: 1px solid rgba(255, 107, 0, 0.3);">Step 0 / 0</span>
+                </div>
+
+                <!-- Interactive Scrubber Box -->
+                <div class="controls-card" style="border-radius: 0; border-left: 0; border-right: 0; border-top: 0;">
+                    <div class="scrubber-row">
+                        <span class="scrubber-label"><i class="fas fa-history"></i> Timeline:</span>
+                        <input type="range" id="traceTimeline" class="trace-slider" min="0" max="0" value="0" disabled oninput="onTimelineScrubberChange(this.value)">
+                    </div>
+                    <div class="playback-buttons">
+                        <div class="btn-group">
+                            <button class="btn-ctrl" id="btnFirst" onclick="goToStep(0)" title="First Step (Home)" disabled><i class="fas fa-fast-backward"></i></button>
+                            <button class="btn-ctrl" id="btnPrev" onclick="stepPrevious()" title="Previous Step (Left Arrow)" disabled><i class="fas fa-step-backward"></i> Prev</button>
+                            <button class="btn-ctrl primary" id="btnPlayPause" onclick="togglePlayPause()" title="Auto Play/Pause (Space)" disabled><i class="fas fa-play" id="playIcon"></i> Play</button>
+                            <button class="btn-ctrl" id="btnNext" onclick="stepNext()" title="Next Step (Right Arrow)" disabled>Next <i class="fas fa-step-forward"></i></button>
+                            <button class="btn-ctrl" id="btnLast" onclick="goToStep(traceSteps.length - 1)" title="Last Step (End)" disabled><i class="fas fa-fast-forward"></i></button>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span style="font-size: 0.8rem; color: var(--text-secondary); font-weight: 600;">Speed:</span>
+                            <select id="playbackSpeed" class="speed-select" onchange="updatePlaybackSpeed()">
+                                <option value="1200">0.5x (Slow)</option>
+                                <option value="600" selected>1.0x (Normal)</option>
+                                <option value="300">2.0x (Fast)</option>
+                                <option value="120">5.0x (Turbo)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Diagnostic Tab Navigation -->
+                <div class="diag-tabs">
+                    <div class="diag-tab active" id="tabCallStack" onclick="switchDiagTab('callStack')"><i class="fas fa-layer-group"></i> Call Stack</div>
+                    <div class="diag-tab" id="tabVariables" onclick="switchDiagTab('variables')"><i class="fas fa-table"></i> Memory Inspector</div>
+                    <div class="diag-tab" id="tabDataStruct" onclick="switchDiagTab('dataStruct')"><i class="fas fa-cubes"></i> Data Structures</div>
+                    <div class="diag-tab" id="tabFlowchart" onclick="switchDiagTab('flowchart')"><i class="fas fa-project-diagram"></i> Algorithm Flowchart</div>
+                    <div class="diag-tab" id="tabConsole" onclick="switchDiagTab('console')"><i class="fas fa-terminal"></i> Console</div>
+                </div>
+
+                <!-- Diagnostic Content Panels -->
+                <div class="diag-content">
+                    
+                    <!-- 1. Call Stack Panel -->
+                    <div id="panelCallStack">
+                        <div id="callStackContainer">
+                            <div style="color: var(--text-muted); text-align: center; padding: 40px 10px;">
+                                <i class="fas fa-code-branch" style="font-size: 2.2rem; margin-bottom: 12px; display: block; opacity: 0.4;"></i>
+                                Execution timeline idle. Click <strong>Trace & Visualize Execution</strong> to capture frame states.
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 2. Memory Inspector Panel -->
+                    <div id="panelVariables" style="display: none;">
+                        <table class="var-table">
+                            <thead>
+                                <tr>
+                                    <th>Variable</th>
+                                    <th>Type</th>
+                                    <th>Current Value</th>
+                                    <th>Previous Value</th>
+                                </tr>
+                            </thead>
+                            <tbody id="variablesTableBody">
+                                <tr>
+                                    <td colspan="4" style="text-align: center; color: var(--text-muted); padding: 30px;">No memory frame captured yet.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- 3. Data Structures Canvas -->
+                    <div id="panelDataStruct" style="display: none; position: relative;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; padding: 8px 14px; background: #141822; border: 1px solid var(--border-color); border-radius: 8px; flex-wrap: wrap; gap: 8px;">
+                            <span style="font-size: 0.83rem; color: var(--text-secondary);"><i class="fas fa-arrows-alt" style="color: var(--orange); margin-right: 6px;"></i> Drag/Scroll to Pan • Buttons/Wheel to Zoom (<span id="dsZoomLabel" style="color: var(--orange); font-weight: 700;">100%</span>)</span>
+                            <div style="display: flex; gap: 6px;">
+                                <button class="btn-ctrl" onclick="zoomCanvas(0.15, 'ds')" title="Zoom In"><i class="fas fa-search-plus"></i> Zoom In</button>
+                                <button class="btn-ctrl" onclick="zoomCanvas(-0.15, 'ds')" title="Zoom Out"><i class="fas fa-search-minus"></i> Zoom Out</button>
+                                <button class="btn-ctrl" onclick="resetCanvasZoom('ds')" title="Reset View"><i class="fas fa-compress"></i> Reset</button>
+                            </div>
+                        </div>
+                        <div id="dataStructViewport" class="canvas-viewport" style="overflow: auto; max-height: 440px; min-height: 380px; border: 1px solid var(--border-color); border-radius: 10px; background: #0c0f17; position: relative; cursor: grab; padding: 20px;">
+                            <div id="dataStructContainer" style="transform-origin: 0 0; transition: transform 0.1s ease-out; min-width: 100%; min-height: 100%;">
+                                <div style="color: var(--text-muted); text-align: center; padding: 40px 10px;">
+                                    <i class="fas fa-project-diagram" style="font-size: 2.2rem; margin-bottom: 12px; display: block; opacity: 0.4;"></i>
+                                    No active arrays or hash maps in current memory scope.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 4. Algorithm Flowchart Panel -->
+                    <div id="panelFlowchart" style="display: none; position: relative;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; padding: 8px 14px; background: #141822; border: 1px solid var(--border-color); border-radius: 8px; flex-wrap: wrap; gap: 8px;">
+                            <span style="font-size: 0.83rem; color: var(--text-secondary);"><i class="fas fa-project-diagram" style="color: #38bdf8; margin-right: 6px;"></i> Live Logic Flowchart • Drag/Scroll to Pan • Zoom (<span id="fcZoomLabel" style="color: #38bdf8; font-weight: 700;">100%</span>)</span>
+                            <div style="display: flex; gap: 6px;">
+                                <button class="btn-ctrl" onclick="zoomCanvas(0.15, 'fc')" title="Zoom In"><i class="fas fa-search-plus"></i> Zoom In</button>
+                                <button class="btn-ctrl" onclick="zoomCanvas(-0.15, 'fc')" title="Zoom Out"><i class="fas fa-search-minus"></i> Zoom Out</button>
+                                <button class="btn-ctrl" onclick="resetCanvasZoom('fc')" title="Reset View"><i class="fas fa-compress"></i> Reset</button>
+                            </div>
+                        </div>
+                        <div id="flowchartViewport" class="canvas-viewport" style="overflow: auto; max-height: 440px; min-height: 380px; border: 1px solid var(--border-color); border-radius: 10px; background: #0c0f17; position: relative; cursor: grab; padding: 30px;">
+                            <div id="flowchartContainer" style="transform-origin: 0 0; transition: transform 0.1s ease-out; min-width: 100%; min-height: 100%; display: flex; flex-direction: column; align-items: center; gap: 16px;">
+                                <div style="color: var(--text-muted); text-align: center; padding: 40px 10px;">
+                                    <i class="fas fa-code-branch" style="font-size: 2.2rem; margin-bottom: 12px; display: block; opacity: 0.4;"></i>
+                                    Click <strong>Trace & Visualize Execution</strong> to generate the live logic flowchart.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 5. Console Panel -->
+                    <div id="panelConsole" style="display: none;">
+                        <div id="consoleTextDisplay" class="console-box">Execution output will stream right here as frames advance...</div>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Monaco Editor Loader & Logic -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs/loader.min.js"></script>
+    <script>
+        let editor;
+        let traceSteps = [];
+        let currentStepIndex = 0;
+        let isPlaying = false;
+        let playInterval = null;
+        let playIntervalMs = 600;
+        let monacoDecorations = [];
+        let globalNodeCoords = {};
+        let globalNodeMap = {};
+        let isTraceTree = false;
+        let isTraceLinkedList = false;
+        let isTraceDoublyLinked = false;
+
+        // Templates Dictionary
+        const TEMPLATES = {
+            twoSum: {
+                lang: 'python',
+                func: 'two_sum',
+                args: '[2, 7, 11, 15], 9',
+                code: `def two_sum(nums, target):\n    lookup = {}\n    for i, num in enumerate(nums):\n        diff = target - num\n        if diff in lookup:\n            return [lookup[diff], i]\n        lookup[num] = i\n    return []`
+            },
+            binarySearch: {
+                lang: 'python',
+                func: 'binary_search',
+                args: '[1, 3, 5, 7, 9, 11, 13, 15], 9',
+                code: `def binary_search(arr, target):\n    left, right = 0, len(arr) - 1\n    while left <= right:\n        mid = (left + right) // 2\n        mid_val = arr[mid]\n        if mid_val == target:\n            return mid\n        elif mid_val < target:\n            left = mid + 1\n        else:\n            right = mid - 1\n    return -1`
+            },
+            fibonacci: {
+                lang: 'python',
+                func: 'fib_dp',
+                args: '6',
+                code: `def fib_dp(n):\n    if n <= 1:\n        return n\n    dp = [0] * (n + 1)\n    dp[1] = 1\n    for i in range(2, n + 1):\n        dp[i] = dp[i-1] + dp[i-2]\n    return dp[n]`
+            },
+            mergeSort: {
+                lang: 'python',
+                func: 'bubble_sort',
+                args: '[64, 34, 25, 12, 22, 11, 90]',
+                code: `def bubble_sort(arr):\n    n = len(arr)\n    for i in range(n):\n        swapped = False\n        for j in range(0, n - i - 1):\n            if arr[j] > arr[j + 1]:\n                arr[j], arr[j + 1] = arr[j + 1], arr[j]\n                swapped = True\n        if not swapped:\n            break\n    return arr`
+            }
+        };
+
+        // Universal Editor Helper Methods
+        function getEditorCode() {
+            if (editor && typeof monaco !== 'undefined' && typeof editor.getValue === 'function' && editor.getModel()) {
+                return editor.getValue();
+            }
+            const fallback = document.getElementById('fallbackCodeEditor');
+            if (fallback) return fallback.value;
+            const box = document.getElementById('monacoEditorBox');
+            return box ? box.textContent : '';
+        }
+
+        function setEditorCode(newCode) {
+            if (editor && typeof monaco !== 'undefined' && typeof editor.setValue === 'function' && editor.getModel()) {
+                editor.setValue(newCode);
+            }
+            const fallback = document.getElementById('fallbackCodeEditor');
+            if (fallback) fallback.value = newCode;
+        }
+
+        function handleFallbackTab(e) {
+            if (e.key === 'Tab') {
+                e.preventDefault();
+                const start = e.target.selectionStart;
+                const end = e.target.selectionEnd;
+                e.target.value = e.target.value.substring(0, start) + "    " + e.target.value.substring(end);
+                e.target.selectionStart = e.target.selectionEnd = start + 4;
+            }
+        }
+
+        // Configure Monaco Environment for CORS-safe Worker loading
+        window.MonacoEnvironment = {
+            getWorkerUrl: function(workerId, label) {
+                return `data:text/javascript;charset=utf-8,${encodeURIComponent(`
+                    self.MonacoEnvironment = {
+                        baseUrl: 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/'
+                    };
+                    importScripts('https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs/base/worker/workerMain.js');
+                `)}`;
+            }
+        };
+
+        // Initialize Monaco Editor with instant fallback resilience
+        require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs' } });
+        require(['vs/editor/editor.main'], function () {
+            try {
+                const autoCode = sessionStorage.getItem('visualizer_auto_code');
+                const currentCode = autoCode || getEditorCode() || TEMPLATES.twoSum.code;
+                const box = document.getElementById('monacoEditorBox');
+                if (box) box.innerHTML = '';
+                editor = monaco.editor.create(document.getElementById('monacoEditorBox'), {
+                    value: currentCode,
+                    language: 'python',
+                    theme: 'vs-dark',
+                    fontSize: 14,
+                    fontFamily: "'Fira Code', Consolas, Monaco, monospace",
+                    automaticLayout: true,
+                    minimap: { enabled: false },
+                    lineNumbers: "on",
+                    scrollbar: { vertical: "visible", horizontal: "visible" },
+                    padding: { top: 14 }
+                });
+                
+                if (autoCode) {
+                    sessionStorage.removeItem('visualizer_auto_code');
+                }
+                const autoMethod = sessionStorage.getItem('visualizer_auto_method');
+                if (autoMethod) {
+                    const methodCallEl = document.getElementById('methodCall');
+                    if (methodCallEl) methodCallEl.value = autoMethod + '()';
+                    sessionStorage.removeItem('visualizer_auto_method');
+                }
+            } catch(err) {
+                console.warn("Monaco Editor failed to initialize, keeping high-speed fallback editor active:", err);
+            }
+        }, function(err) {
+            console.warn("Monaco Editor CDN failed to load, keeping high-speed fallback editor active:", err);
+        });
+
+        function handleLangChange() {
+            const lang = document.getElementById('langSelect').value;
+            if (editor && typeof monaco !== 'undefined' && editor.getModel()) {
+                monaco.editor.setModelLanguage(editor.getModel(), lang);
+            }
+        }
+
+        function loadTemplate(key) {
+            const tpl = TEMPLATES[key];
+            if (!tpl) return;
+            setEditorCode(tpl.code);
+            document.getElementById('langSelect').value = tpl.lang;
+            if (editor && typeof monaco !== 'undefined' && typeof editor.getModel === 'function' && editor.getModel()) {
+                monaco.editor.setModelLanguage(editor.getModel(), tpl.lang);
+            }
+            document.getElementById('funcNameInput').value = tpl.func;
+            document.getElementById('funcArgsInput').value = tpl.args;
+
+            // Highlight button
+            document.querySelectorAll('.tpl-btn').forEach(btn => btn.classList.remove('active'));
+            if (window.event && window.event.target && window.event.target.classList) window.event.target.classList.add('active');
+
+            // Immediately trigger execution trace so old data structures are cleared!
+            setTimeout(() => {
+                triggerExecutionTrace();
+            }, 50);
+        }
+
+        function switchDiagTab(tabKey) {
+            document.querySelectorAll('.diag-tab').forEach(t => t.classList.remove('active'));
+            document.getElementById('panelCallStack').style.display = 'none';
+            document.getElementById('panelVariables').style.display = 'none';
+            document.getElementById('panelDataStruct').style.display = 'none';
+            document.getElementById('panelFlowchart').style.display = 'none';
+            document.getElementById('panelConsole').style.display = 'none';
+
+            if (tabKey === 'callStack') {
+                document.getElementById('tabCallStack').classList.add('active');
+                document.getElementById('panelCallStack').style.display = 'block';
+            } else if (tabKey === 'variables') {
+                document.getElementById('tabVariables').classList.add('active');
+                document.getElementById('panelVariables').style.display = 'block';
+            } else if (tabKey === 'dataStruct') {
+                document.getElementById('tabDataStruct').classList.add('active');
+                document.getElementById('panelDataStruct').style.display = 'block';
+            } else if (tabKey === 'flowchart') {
+                document.getElementById('tabFlowchart').classList.add('active');
+                document.getElementById('panelFlowchart').style.display = 'block';
+            } else if (tabKey === 'console') {
+                document.getElementById('tabConsole').classList.add('active');
+                document.getElementById('panelConsole').style.display = 'block';
+            }
+        }
+
+        function setStatus(text, type) {
+            const pill = document.getElementById('statusPill');
+            pill.className = `status-pill ${type || ''}`;
+            pill.innerHTML = `<i class="fas ${type === 'tracing' ? 'fa-spinner fa-spin' : (type === 'error' ? 'fa-exclamation-circle' : 'fa-check-circle')}"></i> ${text}`;
+        }
+
+        // Trigger Execution
+        async function triggerExecutionTrace() {
+            if (isPlaying) togglePlayPause();
+            const code = getEditorCode();
+            const funcName = document.getElementById('funcNameInput').value.trim();
+            const rawArgs = document.getElementById('funcArgsInput').value.trim();
+            const lang = document.getElementById('langSelect').value;
+
+            setStatus("Connecting to tracing backend...", "tracing");
+
+            // Parse arguments exactly into array
+            let parsedArgs = [];
+            if (rawArgs) {
+                try {
+                    parsedArgs = JSON.parse(`[${rawArgs}]`);
+                } catch(e) {
+                    parsedArgs = rawArgs.split(',').map(s => s.trim());
+                }
+            }
+
+            if (lang === 'javascript') {
+                // Run Javascript Local AST / Evaluation Simulation
+                simulateJavaScriptTrace(code, funcName, parsedArgs);
+                return;
+            }
+
+            try {
+                // Try Express Proxy first, then Direct Python Port 8000
+                let response;
+                try {
+                    response = await fetch('http://localhost:5000/trace', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ code: code, function_name: funcName, func_name: funcName, args: parsedArgs })
+                    });
+                } catch(proxyErr) {
+                    response = await fetch('/trace', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ code: code, function_name: funcName, func_name: funcName, args: parsedArgs })
+                    });
+                }
+
+                if (!response.ok) {
+                    throw new Error(`HTTP Error: ${response.status}`);
+                }
+
+                const data = await response.json();
+                if ((data.success || data.status === 'success') && Array.isArray(data.trace)) {
+                    initializeTraceSession(data.trace);
+                } else if (data.status === 'error' || !data.success || data.error) {
+                    setStatus(`Execution Error: ${data.message || data.detail || data.error}`, "error");
+                    document.getElementById('consoleTextDisplay').textContent = `Runtime Crash:\n${data.traceback || data.detail || data.message || data.error}`;
+                    switchDiagTab('console');
+                } else {
+                    setStatus("No trace frames returned.", "error");
+                }
+            } catch (err) {
+                console.warn("Backend trace failed, generating client simulation...", err);
+                // Fallback client simulation if backend engine is stopped
+                simulatePythonTraceFallback(code, funcName, parsedArgs);
+            }
+        }
+
+        function initializeTraceSession(traces) {
+            if (!traces || traces.length === 0) {
+                setStatus("0 steps recorded.", "error");
+                return;
+            }
+
+            // Map backend 'variables' to frontend 'locals' for all steps
+            traces.forEach(step => {
+                if (step && step.variables && !step.locals) {
+                    step.locals = step.variables;
+                }
+            });
+
+            traceSteps = traces;
+            currentStepIndex = 0;
+            if (typeof precalculateNodeCoordinates === 'function') {
+                precalculateNodeCoordinates(traceSteps);
+            }
+
+            const slider = document.getElementById('traceTimeline');
+            slider.max = traceSteps.length - 1;
+            slider.value = 0;
+            slider.disabled = false;
+
+            document.getElementById('btnFirst').disabled = false;
+            document.getElementById('btnPrev').disabled = false;
+            document.getElementById('btnPlayPause').disabled = false;
+            document.getElementById('btnNext').disabled = false;
+            document.getElementById('btnLast').disabled = false;
+
+            setStatus(`Captured ${traceSteps.length} execution frames!`, "completed");
+            if (typeof generateAlgorithmFlowchart === 'function') {
+                generateAlgorithmFlowchart();
+            }
+            renderStep(0);
+        }
+
+        function renderStep(index) {
+            if (index < 0 || index >= traceSteps.length) return;
+            currentStepIndex = index;
+
+            // Update UI slider & step badge
+            document.getElementById('traceTimeline').value = index;
+            document.getElementById('stepCounterBadge').textContent = `Step ${index + 1} / ${traceSteps.length}`;
+
+            const step = traceSteps[index];
+            const prevStep = index > 0 ? traceSteps[index - 1] : null;
+
+            // 1. Update Monaco Editor Decoration (Line Highlighting)
+            if (editor && typeof monaco !== 'undefined' && step.lineno && step.lineno > 0 && typeof editor.deltaDecorations === 'function') {
+                const line = step.lineno;
+                monacoDecorations = editor.deltaDecorations(monacoDecorations, [
+                    {
+                        range: new monaco.Range(line, 1, line, 100),
+                        options: {
+                            isWholeLine: true,
+                            className: 'myLineDecoration',
+                            glyphMarginClassName: 'myGlyphDecoration'
+                        }
+                    }
+                ]);
+                editor.revealLineInCenter(line);
+            }
+
+            // 2. Render Call Stack & Scope Matrix
+            const stackBox = document.getElementById('callStackContainer');
+            if (stackBox) {
+                stackBox.innerHTML = '';
+                const frameEl = document.createElement('div');
+                frameEl.className = 'frame-box animate__animated animate__fadeIn';
+                
+                let modifiedKeys = new Set();
+                if (prevStep && prevStep.locals && step.locals) {
+                    for (let key in step.locals) {
+                        if (JSON.stringify(prevStep.locals[key]) !== JSON.stringify(step.locals[key])) {
+                            modifiedKeys.add(key);
+                        }
+                    }
+                }
+
+                let chipsHtml = '';
+                if (step.locals && Object.keys(step.locals).length > 0) {
+                    for (let key in step.locals) {
+                        const valStr = formatVarValue(step.locals[key]);
+                        const isMod = modifiedKeys.has(key) ? 'modified' : '';
+                        chipsHtml += `<div class="var-chip ${isMod}">${key}: <strong>${valStr}</strong></div>`;
+                    }
+                } else {
+                    chipsHtml = `<span style="color: var(--text-muted); font-size: 0.8rem;">No local scope variables.</span>`;
+                }
+
+                frameEl.innerHTML = `
+                    <div class="frame-title">
+                        <span><i class="fas fa-cube" style="color: var(--orange);"></i> ${step.func_name || 'main'}()</span>
+                        <span class="frame-line">Line ${step.lineno || 'N/A'} • ${step.event || 'line'}</span>
+                    </div>
+                    <div class="frame-vars">${chipsHtml}</div>
+                `;
+                stackBox.appendChild(frameEl);
+            }
+
+            // 3. Render Memory Inspector Table
+            const tbody = document.getElementById('variablesTableBody');
+            if (tbody) {
+                tbody.innerHTML = '';
+                if (step.locals && Object.keys(step.locals).length > 0) {
+                    for (let key in step.locals) {
+                        const curVal = step.locals[key];
+                        const prevVal = (prevStep && prevStep.locals) ? prevStep.locals[key] : undefined;
+                        const isMod = prevVal !== undefined && JSON.stringify(curVal) !== JSON.stringify(prevVal);
+
+                        const tr = document.createElement('tr');
+                        if (isMod) tr.style.background = 'rgba(34, 197, 94, 0.08)';
+
+                        const typeName = (curVal && typeof curVal === 'object' && curVal.type) ? curVal.type : (Array.isArray(curVal) ? 'list' : typeof curVal);
+
+                        tr.innerHTML = `
+                            <td style="font-weight: 700; color: ${isMod ? '#4ade80' : 'var(--text-primary)'};">${key} ${isMod ? '🔥' : ''}</td>
+                            <td><span class="type-badge">${typeName}</span></td>
+                            <td style="color: ${isMod ? '#4ade80' : '#38bdf8'}; font-weight: 700;">${formatVarValue(curVal)}</td>
+                            <td style="color: var(--text-muted);">${prevVal !== undefined ? formatVarValue(prevVal) : '--'}</td>
+                        `;
+                        tbody.appendChild(tr);
+                    }
+                } else {
+                    tbody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--text-muted); padding: 20px;">Scope empty.</td></tr>`;
+                }
+            }
+
+            // 4. Render Data Structures Canvas (Linked Lists, Stack, Queue, Arrays, Hash Maps, 2D Matrices)
+            const dsBox = document.getElementById('dataStructContainer');
+            if (dsBox) {
+                dsBox.innerHTML = '';
+                let hasDS = false;
+
+                if (step.locals) {
+                    // 1. Check and Render Node Graphs (Linked Lists, Trees, Graphs)
+                    const hasLinkedStructure = detectLinkedStructure(step.locals);
+                    if (hasLinkedStructure) {
+                        hasDS = true;
+                        const sec = document.createElement('div');
+                        sec.className = 'animate__animated animate__fadeIn w-full mb-6';
+                        sec.innerHTML = `
+                            <div class="ds-section-title"><i class="fas fa-project-diagram" style="color: var(--orange);"></i> Live Pointer & Memory Object Node Graph</div>
+                            <div class="svg-canvas-box">${renderLinkedStructureVisualizer(step.locals)}</div>
+                        `;
+                        dsBox.appendChild(sec);
+                    }
+
+                    // 2. Loop through every variable in scope and render EACH structure cleanly without priority hiding!
+                    for (let key in step.locals) {
+                        if (key.startsWith('_')) continue;
+                        const val = step.locals[key];
+                        if (!val) continue;
+
+                         const lowercaseKey = key.toLowerCase();
+                         console.log('[DS DEBUG]', key, '->', val && val.type, '| isRef:', val && val.type === 'reference', '| globalNodeMap size:', Object.keys(globalNodeMap).length);
+
+            // DEREFERENCE LISTS/MATRICES!
+            let actualVal = val;
+            if (val && val.type === 'reference' && globalNodeMap && globalNodeMap[String(val.id)]) {
+                actualVal = globalNodeMap[String(val.id)];
+            }
+
+            const isListType = actualVal.type === 'list' || actualVal.type === 'tuple' || actualVal.type === 'set' || Array.isArray(actualVal) || (actualVal && typeof actualVal === 'object' && Array.isArray(actualVal.value));
+            let isListDynamic = isListType;
+            let resolvedArrItems = [];
+            if (isListDynamic) {
+                resolvedArrItems = actualVal.value || (Array.isArray(actualVal) ? actualVal : []);
+            } else if (actualVal.type === 'str' && typeof actualVal.value === 'string' && actualVal.value.length > 1) {
+                // FIX 2: String Two-Pointer array rendering upgrade
+                let hasStringPointers = false;
+                for (let p in step.locals) {
+                    if (p === key) continue;
+                    const pVal = step.locals[p];
+                    const numVal = (pVal && typeof pVal === 'object' && pVal.type === 'int') ? pVal.value : pVal;
+                    if (typeof numVal === 'number' && Number.isInteger(numVal) && numVal >= 0 && numVal < actualVal.value.length) {
+                        const pLower = p.toLowerCase();
+                        if (['i', 'j', 'left', 'right', 'l', 'r', 'start', 'end', 'p1', 'p2'].includes(pLower)) {
+                            hasStringPointers = true; break;
+                        }
+                    }
+                }
+                if (hasStringPointers) {
+                    isListDynamic = true;
+                    resolvedArrItems = actualVal.value.split('');
+                }
+            }
+
+
+                        
+            // Matrix Check
+            const isMatrixName = (lowercaseKey.includes('matrix') || lowercaseKey.includes('board') || lowercaseKey.includes('grid') || lowercaseKey.includes('dp')) && isListType;
+            let is2DArray = false;
+            if (isListType && resolvedArrItems.length > 0) {
+                // If the inner row is a reference, dereference it too!
+                is2DArray = resolvedArrItems.every(row => {
+                    let r = row;
+                    if (r && r.type === 'reference' && globalNodeMap[String(r.id)]) r = globalNodeMap[String(r.id)];
+                    return r && (r.type === 'list' || Array.isArray(r) || (typeof r === 'object' && Array.isArray(r.value)));
+                });
+            }
+            if (isMatrixName || is2DArray) {
+                hasDS = true;
+                
+                // Dereference the inner rows for renderMatrixVisualizer
+                let renderMatrixVar = JSON.parse(JSON.stringify(actualVal));
+                if (renderMatrixVar.value) {
+                    for (let i = 0; i < renderMatrixVar.value.length; i++) {
+                        let r = renderMatrixVar.value[i];
+                        if (r && r.type === 'reference' && globalNodeMap[String(r.id)]) {
+                            renderMatrixVar.value[i] = globalNodeMap[String(r.id)];
+                        }
+                    }
+                }
+                
+                const sec = document.createElement('div');
+                sec.className = 'animate__animated animate__fadeIn w-full mb-6';
+                sec.innerHTML = `
+                    <div class="ds-section-title"><i class="fas fa-th" style="color: var(--orange);"></i> Live 2D Matrix: <strong>${key}</strong></div>
+                    <div style="background: var(--bg-darker); border-radius: 8px; border: 1px solid var(--border-color); padding: 10px;">${renderMatrixVisualizer(renderMatrixVar, key, step.locals)}</div>
+                `;
+                dsBox.appendChild(sec);
+                continue;
+            }
+
+            // Check if explicitly named/used as Stack or Queue while being a container
+                        const isStackName = (lowercaseKey.includes('stack') || lowercaseKey === 'st' || lowercaseKey === 's') && isListType && !lowercaseKey.includes('str');
+                        const isQueueName = (lowercaseKey.includes('queue') || lowercaseKey === 'q') && isListType;
+
+                        if (isStackName) {
+                            hasDS = true;
+                            const sec = document.createElement('div');
+                            sec.className = 'animate__animated animate__fadeIn w-full mb-6';
+                            sec.innerHTML = `
+                                <div class="ds-section-title"><i class="fas fa-layer-group" style="color: var(--orange);"></i> Live LIFO Stack: <strong>${key}</strong></div>
+                                <div class="svg-canvas-box">${renderStackVisualizer(actualVal, key, step.locals)}</div>
+                            `;
+                            dsBox.appendChild(sec);
+                            continue;
+                        }
+
+                        if (isQueueName) {
+                            hasDS = true;
+                            const sec = document.createElement('div');
+                            sec.className = 'animate__animated animate__fadeIn w-full mb-6';
+                            sec.innerHTML = `
+                                <div class="ds-section-title"><i class="fas fa-stream" style="color: #10b981;"></i> Live FIFO Queue: <strong>${key}</strong></div>
+                                <div class="svg-canvas-box">${renderQueueVisualizer(actualVal, key, step.locals)}</div>
+                            `;
+                            dsBox.appendChild(sec);
+                            continue;
+                        }
+
+                        // Check for List / Tuple / Array / 2D Matrix
+                        if (isListDynamic) {
+                            const arrItems = resolvedArrItems;
+                            hasDS = true;
+
+                            // Check if 2D Grid / Matrix (first item is container or array of arrays)
+                            const firstItem = arrItems.length > 0 ? arrItems[0] : null;
+                            const is2D = firstItem && typeof firstItem === 'object' && (firstItem.type === 'list' || Array.isArray(firstItem.value) || Array.isArray(firstItem));
+
+                            if (is2D) {
+                                // Collect row and col pointers accurately (e.g., r, c, row, col, i, j, x, y)
+                                const rowPointers = {};
+                                const colPointers = {};
+                                for (let p in step.locals) {
+                                    if (p === key) continue;
+                                    const pVal = step.locals[p];
+                                    const numVal = (pVal && typeof pVal === 'object' && pVal.type === 'int') ? pVal.value : pVal;
+                                    if (typeof numVal === 'number' && Number.isInteger(numVal)) {
+                                        const pLower = p.toLowerCase();
+                                        if (['r', 'row', 'i', 'y', 'r1', 'r2', 'top', 'bottom', 'row_idx'].includes(pLower)) {
+                                            rowPointers[numVal] = rowPointers[numVal] ? `${rowPointers[numVal]}, ${p}` : p;
+                                        } else if (['c', 'col', 'j', 'x', 'c1', 'c2', 'left', 'right', 'col_idx'].includes(pLower)) {
+                                            colPointers[numVal] = colPointers[numVal] ? `${colPointers[numVal]}, ${p}` : p;
+                                        }
+                                    }
+                                }
+
+                                const maxCols = Math.max(...arrItems.map(row => (row && row.type === 'list' ? (row.value || []).length : (Array.isArray(row) ? row.length : 0))), 0);
+                                let gridHtml = '<table class="matrix-grid-table" style="border-collapse: separate; border-spacing: 4px; width: 100%; max-width: 650px; margin: 10px auto;">';
+                                gridHtml += '<tr><th style="width:40px; color:var(--text-muted); font-size:0.75rem;">r \ c</th>';
+                                for (let c = 0; c < maxCols; c++) {
+                                    const colLabel = colPointers[c] ? `[${c}]<br><span style="color:#10b981; font-size:0.7rem; font-weight:bold;">↑${colPointers[c]}</span>` : `[${c}]`;
+                                    gridHtml += `<th style="padding: 4px; color:var(--text-muted); font-size:0.75rem; text-align:center;">${colLabel}</th>`;
+                                }
+                                gridHtml += '</tr>';
+
+                                arrItems.forEach((rowObj, r) => {
+                                    const rowVals = (rowObj && rowObj.type === 'list') ? (rowObj.value || []) : (Array.isArray(rowObj) ? rowObj : []);
+                                    const rowLabel = rowPointers[r] ? `[${r}] <span style="color:var(--orange); font-size:0.7rem; font-weight:bold;">←${rowPointers[r]}</span>` : `[${r}]`;
+                                    gridHtml += `<tr><td style="color:var(--text-muted); font-size:0.75rem; font-weight:bold; padding-right:8px; white-space:nowrap;">${rowLabel}</td>`;
+                                    for (let c = 0; c < maxCols; c++) {
+                                        const cellVal = c < rowVals.length ? formatVarValue(rowVals[c]) : '-';
+                                        const isCellActive = (rowPointers[r] && colPointers[c]) ? 'background: rgba(249, 115, 22, 0.25); border-color: var(--orange); box-shadow: 0 0 8px rgba(249,115,22,0.4);' : 'background: var(--bg-dark); border-color: var(--border-color);';
+                                        gridHtml += `<td style="border: 1px solid; border-radius: 6px; padding: 10px 8px; text-align: center; font-family: 'Fira Code', monospace; font-size: 0.9rem; font-weight: 600; color: var(--text-light); transition: all 0.2s; ${isCellActive}">${cellVal}</td>`;
+                                    }
+                                    gridHtml += '</tr>';
+                                });
+                                gridHtml += '</table>';
+
+                                const sec = document.createElement('div');
+                                sec.className = 'animate__animated animate__fadeIn w-full mb-6';
+                                sec.innerHTML = `
+                                    <div class="ds-section-title"><i class="fas fa-th" style="color: #38bdf8;"></i> 2D Matrix / Grid: <strong>${key}</strong> (${arrItems.length}×${maxCols})</div>
+                                    <div class="matrix-container overflow-x-auto p-3" style="background: var(--bg-card); border-radius: 12px; border: 1px solid var(--border-color);">${gridHtml}</div>
+                                `;
+                                dsBox.appendChild(sec);
+                            } else {
+                                // Render 1D Array / List with smart index pointers
+                                const pointerMap = {};
+                                for (let p in step.locals) {
+                                    if (p === key) continue;
+                                    const pVal = step.locals[p];
+                                    const numVal = (pVal && typeof pVal === 'object' && pVal.type === 'int') ? pVal.value : pVal;
+                                    if (typeof numVal === 'number' && Number.isInteger(numVal) && numVal >= 0 && numVal < arrItems.length) {
+                                        const pLower = p.toLowerCase();
+                                        if (['i', 'j', 'k', 'left', 'right', 'mid', 'start', 'end', 'idx', 'index', 'ptr', 'pos', 'p1', 'p2', 'low', 'high', 'l', 'r', 'top', 'bot'].includes(pLower) || pLower.includes('idx') || pLower.includes('ptr')) {
+                                            pointerMap[numVal] = pointerMap[numVal] ? `${pointerMap[numVal]}, ${p}` : p;
+                                        }
+                                    }
+                                }
+
+                                let cellsHtml = '';
+                                arrItems.forEach((item, i) => {
+                                    const isActive = pointerMap[i] ? 'active-idx' : '';
+                                    const pointerBadge = pointerMap[i] ? `<div style="font-size: 0.65rem; color: #10b981; font-weight: bold; margin-bottom: 2px;">↑ ${pointerMap[i]}</div>` : '';
+                                    const itemFormatted = formatVarValue(item);
+                                    cellsHtml += `
+                                        <div class="array-cell">
+                                            <span class="array-idx">[${i}]</span>
+                                            <div class="array-val ${isActive}">${itemFormatted}</div>
+                                            ${pointerBadge}
+                                        </div>
+                                    `;
+                                });
+
+                                const sec = document.createElement('div');
+                                sec.className = 'animate__animated animate__fadeIn w-full mb-6';
+                                sec.innerHTML = `
+                                    <div class="ds-section-title"><i class="fas fa-layer-group" style="color: var(--orange);"></i> Array / List: <strong>${key}</strong> (len=${arrItems.length})</div>
+                                    <div class="array-grid">${cellsHtml}</div>
+                                `;
+                                dsBox.appendChild(sec);
+                            }
+                            continue;
+                        }
+
+                        // Check for Dictionaries / Hash Maps / Graph Adjacency Dicts
+                        const isDictObj = val && typeof val === 'object' && val.type === 'dict' && val.value && typeof val.value === 'object';
+                        const isRawDict = typeof val === 'object' && val !== null && !Array.isArray(val) && !val.type && Object.keys(val).length > 0 && !val.class;
+
+                        if (isDictObj || isRawDict) {
+                            hasDS = true;
+                            const dictItems = isDictObj ? val.value : val;
+                            const sec = document.createElement('div');
+                            sec.className = 'animate__animated animate__fadeIn w-full mb-6';
+
+                            // Check if dict is a Graph adjacency list (e.g., {1: [2, 3], 2: [1]})
+                            let isGraphDict = false;
+                            const keys = Object.keys(dictItems);
+                            if (keys.length > 0) {
+                                const firstVal = dictItems[keys[0]];
+                                if (firstVal && (firstVal.type === 'list' || Array.isArray(firstVal.value) || Array.isArray(firstVal) || firstVal.type === 'set')) {
+                                    isGraphDict = true;
+                                }
+                            }
+
+                            let cardsHtml = '';
+                            for (let k in dictItems) {
+                                cardsHtml += `
+                                    <div class="map-card" style="display: flex; align-items: center; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 8px; padding: 6px 12px;">
+                                        <span class="map-key" style="background: var(--bg-dark); border: 1px solid var(--border-color); padding: 4px 10px; border-radius: 6px; font-weight: bold; color: var(--orange); font-family: 'Fira Code', monospace;">${k}</span>
+                                        <span class="map-arrow" style="margin: 0 8px; color: var(--text-muted);">→</span>
+                                        <span class="map-val" style="background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.3); padding: 4px 10px; border-radius: 6px; color: #38bdf8; font-weight: 500; font-family: 'Fira Code', monospace;">${formatVarValue(dictItems[k])}</span>
+                                    </div>
+                                `;
+                            }
+
+                            const iconClass = isGraphDict ? 'fa-network-wired' : 'fa-database';
+                            const titleLabel = isGraphDict ? 'Graph Adjacency List' : 'Hash Map / Dictionary';
+
+                            sec.innerHTML = `
+                                <div class="ds-section-title"><i class="fas ${iconClass}" style="color: #38bdf8;"></i> ${titleLabel}: <strong>${key}</strong> (${keys.length} entries)</div>
+                                <div class="map-cards" style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px;">${cardsHtml || '<span style="color:var(--text-muted);">Empty dict</span>'}</div>
+                            `;
+                            dsBox.appendChild(sec);
+                            continue;
+                        }
+                    }
+                }
+
+                if (!hasDS) {
+                    dsBox.innerHTML = `<div style="color: var(--text-muted); text-align: center; padding: 40px 10px;">
+                        <i class="fas fa-project-diagram" style="font-size: 2.2rem; margin-bottom: 12px; display: block; opacity: 0.4;"></i>
+                        No active arrays, linked lists, stacks, queues, 2D grids, or hash maps in current memory scope.
+                    </div>`;
+                }
+            }
+
+            // 5. Render Console Output
+            const consoleBox = document.getElementById('consoleTextDisplay');
+            if (consoleBox) {
+                let outStr = '';
+                for (let i = 0; i <= index; i++) {
+                    if (traceSteps[i].stdout) outStr += traceSteps[i].stdout + '\n';
+                    if (traceSteps[i].event === 'return') {
+                        outStr += `
+🎯 [Return Value from ${traceSteps[i].func_name || 'func'}()]: ${formatVarValue(traceSteps[i].return_value)}`;
+                    }
+                }
+                consoleBox.textContent = outStr || "Running step evaluation without console output...";
+            }
+
+            // 6. Update Active Algorithm Flowchart Node Highlighting
+            if (typeof updateFlowchartHighlight === 'function') {
+                updateFlowchartHighlight(step.lineno);
+            }
+        }
+
+        function formatVarValue(v) {
+            if (v === null || v === undefined) return 'None';
+            if (typeof v !== 'object') return String(v);
+            if (v.type === 'int' || v.type === 'float' || v.type === 'bool') return String(v.value);
+            if (v.type === 'str') return `"${v.value}"`;
+            if (v.type === 'list' || v.type === 'tuple' || v.type === 'set') {
+                const items = (v.value || []).map(formatVarValue).join(', ');
+                const brackets = v.type === 'list' ? ['[', ']'] : (v.type === 'tuple' ? ['(', ')'] : ['{', '}']);
+                return `${brackets[0]}${items}${brackets[1]}`;
+            }
+            if (v.type === 'dict') {
+                const pairs = Object.entries(v.value || {}).map(([k, val]) => `"${k}": ${formatVarValue(val)}`).join(', ');
+                return `{${pairs}}`;
+            }
+            if (v.type === 'object') {
+                return `<${v.class || 'Object'} Node>`;
+            }
+            if (v.type === 'reference') {
+                return `<Link:${v.class || 'Node'} ${v.id || ''}>`;
+            }
+            if (v.type === 'truncated') {
+                return String(v.value);
+            }
+            return String(v.value !== undefined ? v.value : JSON.stringify(v));
+        }
+
+        function detectLinkedStructure(variables) {
+            if (!variables) return false;
+
+            // Check if we have multiple nested nodes that indicate a graph/list
+            for (const name in variables) {
+                if (name.startsWith('_')) continue;
+                const v = variables[name];
+                // Check object attributes — only for actual objects, not serialized list wrappers
+                let targetObj = (v.type === 'object' && v.value) ? v : (v.type === 'reference' ? globalNodeMap[String(v.id)] : null);
+                if (targetObj && targetObj.value && typeof targetObj.value === 'object' && !Array.isArray(targetObj.value)) {
+                    const keys = Object.keys(targetObj.value);
+                    // 'value' removed — it matches ANY serialized Python object (including list rows)
+                    if (keys.includes('next') || keys.includes('left') || keys.includes('right') || keys.includes('val')) {
+                        return true;
+                    }
+                }
+            }
+            // Only trigger globalNodeMap check if the map contains actual node objects (not list rows)
+            if (typeof globalNodeMap !== 'undefined' && Object.keys(globalNodeMap).length > 0) {
+                for (const name in variables) {
+                    const v = variables[name];
+                    // Skip plain lists even if they have IDs in the globalNodeMap
+                    if (!v || v.type === 'list' || v.type === 'tuple' || v.type === 'set') continue;
+                    if (v && v.type === 'object' && globalNodeMap[String(v.id)]) {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+        function precalculateNodeCoordinates(trace) {
+            globalNodeCoords = {};
+            globalNodeMap = {};
+            isTraceTree = false;
+            isTraceLinkedList = false;
+            isTraceDoublyLinked = false;
+            const globalNodeOrder = [];
+
+            trace.forEach(step => {
+                const stepSeenIds = new Set();
+                function collectObjects(v) {
+                    if (!v || typeof v !== 'object') return;
+                    if (v.type === 'object') {
+                        const oid = String(v.id);
+                        if (!stepSeenIds.has(oid)) {
+                            stepSeenIds.add(oid);
+                            const current = globalNodeMap[oid];
+                            const newLen = v.value ? Object.keys(v.value).length : -1;
+                            const oldLen = current && current.value ? Object.keys(current.value).length : -1;
+                            if (oldLen === -1 || newLen >= oldLen) {
+                                if (!globalNodeMap[oid]) globalNodeOrder.push(v);
+                                else {
+                                    const idx = globalNodeOrder.indexOf(current);
+                                    if (idx !== -1) globalNodeOrder[idx] = v;
+                                }
+                                globalNodeMap[oid] = v;
+                            }
+                            if (v.value) {
+                                for (const attr in v.value) collectObjects(v.value[attr]);
+                            }
+                        }
+                    } else if (v.type === 'list' || v.type === 'dict') {
+                        const vals = v.type === 'list' ? v.value : Object.values(v.value || {});
+                        (vals || []).forEach(collectObjects);
+                    }
+                }
+                for (const name in step.locals) collectObjects(step.locals[name]);
+            });
+
+            const nodeIds = Object.keys(globalNodeMap);
+            if (!nodeIds.length) return;
+
+            isTraceTree = globalNodeOrder.some(node => {
+                const keys = Object.keys(node.value || {});
+                return keys.some(k => ['left', 'right', 'left_child', 'right_child', 'lc', 'rc'].includes(k.toLowerCase()));
+            });
+
+            isTraceDoublyLinked = !isTraceTree && globalNodeOrder.some(node => {
+                const keys = Object.keys(node.value || {});
+                return keys.includes('next') && (keys.includes('prev') || keys.includes('previous'));
+            });
+
+            isTraceLinkedList = !isTraceTree && !isTraceDoublyLinked && globalNodeOrder.some(node => {
+                const keys = Object.keys(node.value || {});
+                return keys.includes('next');
+            });
+
+            if (isTraceTree) {
+                const childIds = new Set();
+                globalNodeOrder.forEach(node => {
+                    const leftKey = Object.keys(node.value || {}).find(k => ['left', 'left_child', 'lc'].includes(k.toLowerCase()));
+                    const rightKey = Object.keys(node.value || {}).find(k => ['right', 'right_child', 'rc'].includes(k.toLowerCase()));
+                    if (leftKey && node.value[leftKey] && (node.value[leftKey].type === 'object' || node.value[leftKey].type === 'reference')) childIds.add(String(node.value[leftKey].id));
+                    if (rightKey && node.value[rightKey] && (node.value[rightKey].type === 'object' || node.value[rightKey].type === 'reference')) childIds.add(String(node.value[rightKey].id));
+                });
+                const roots = nodeIds.filter(id => !childIds.has(id));
+                const mainRoot = roots.length > 0 ? roots[0] : nodeIds[0];
+                const visitedLayout = new Set();
+                function layoutTree(nodeId, level, leftBound, rightBound) {
+                    if (!nodeId || !globalNodeMap[nodeId] || visitedLayout.has(nodeId)) return;
+                    visitedLayout.add(nodeId);
+                    const x = (leftBound + rightBound) / 2;
+                    const y = 45 + level * 55;
+                    globalNodeCoords[nodeId] = { x, y };
+                    const node = globalNodeMap[nodeId];
+                    const leftKey = Object.keys(node.value || {}).find(k => ['left', 'left_child', 'lc'].includes(k.toLowerCase()));
+                    const rightKey = Object.keys(node.value || {}).find(k => ['right', 'right_child', 'rc'].includes(k.toLowerCase()));
+                    let leftId = (leftKey && node.value[leftKey]) ? String(node.value[leftKey].id) : null;
+                    if (leftId) layoutTree(leftId, level + 1, leftBound, x);
+                    let rightId = (rightKey && node.value[rightKey]) ? String(node.value[rightKey].id) : null;
+                    if (rightId) layoutTree(rightId, level + 1, x, rightBound);
+                }
+                layoutTree(mainRoot, 0, 40, 610);
+                nodeIds.forEach((id, idx) => {
+                    if (!globalNodeCoords[id]) globalNodeCoords[id] = { x: 60 + (idx % 5) * 110, y: 180 + Math.floor(idx / 5) * 65 };
+                });
+            } else if (isTraceLinkedList || isTraceDoublyLinked) {
+                const nextTargetIds = new Set();
+                globalNodeOrder.forEach(node => {
+                    const nextKey = Object.keys(node.value || {}).find(k => ['next', 'nxt'].includes(k.toLowerCase()));
+                    if (nextKey && node.value[nextKey] && (node.value[nextKey].type === 'object' || node.value[nextKey].type === 'reference')) nextTargetIds.add(String(node.value[nextKey].id));
+                });
+                let heads = nodeIds.filter(id => !nextTargetIds.has(id));
+                if (heads.length === 0) heads = [nodeIds[0]];
+                const visitedLayout = new Set();
+                let xPosition = 85;
+            let yPosition = 125;
+            function layoutList(nodeId) {
+                if (!nodeId || !globalNodeMap[nodeId] || visitedLayout.has(nodeId)) return;
+                visitedLayout.add(nodeId);
+                globalNodeCoords[nodeId] = { x: xPosition, y: yPosition };
+                xPosition += 145;
+                if (xPosition > 620) {
+                    xPosition = 85;
+                    yPosition += 115;
+                }
+                const node = globalNodeMap[nodeId];
+                const nextKey = Object.keys(node.value || {}).find(k => ['next', 'nxt'].includes(k.toLowerCase()));
+                const nextId = (nextKey && node.value[nextKey]) ? String(node.value[nextKey].id) : null;
+                if (nextId) layoutList(nextId);
+            }
+                heads.forEach(layoutList);
+                nodeIds.forEach(id => { if (!globalNodeCoords[id]) layoutList(id); });
+            } else {
+                const centerX = 325, centerY = 110, radiusX = 175, radiusY = 65;
+                const count = nodeIds.length;
+                nodeIds.forEach((id, idx) => {
+                    const angle = (idx / count) * 2 * Math.PI - Math.PI / 2;
+                    globalNodeCoords[id] = { x: centerX + radiusX * Math.cos(angle), y: centerY + radiusY * Math.sin(angle) };
+                });
+            }
+        }
+
+        function renderLinkedStructureVisualizer(variables) {
+        const activeNodeIds = new Set();
+        function markActive(v, stepSeen) {
+            if (!v || typeof v !== 'object') return;
+            if (v.type === 'object' || v.type === 'reference') {
+                const oid = String(v.id);
+                if (!stepSeen.has(oid)) {
+                    stepSeen.add(oid);
+                    activeNodeIds.add(oid);
+                    const fullNode = globalNodeMap[oid];
+                    if (fullNode && fullNode.value) {
+                        for (const attr in fullNode.value) markActive(fullNode.value[attr], stepSeen);
+                    }
+                }
+            } else if (v.type === 'list' || v.type === 'dict') {
+                const vals = v.type === 'list' ? v.value : Object.values(v.value || {});
+                (vals || []).forEach(val => markActive(val, stepSeen));
+            }
+        }
+        const stepSeen = new Set();
+        for (const name in variables) markActive(variables[name], stepSeen);
+        const nodeIds = Object.keys(globalNodeMap);
+        if (!nodeIds.length) return `<div style="color:var(--text-muted);text-align:center;padding:20px;">Nodes not fully initialized.</div>`;
+
+        const frontierIds = new Set(), visitedVals = new Set(), visitedIds = new Set();
+        for (const name in variables) {
+            const v = variables[name];
+            if (!v) continue;
+            const lowercaseName = name.toLowerCase();
+            if (['queue', 'q', 'stack', 'frontier'].some(k => lowercaseName.includes(k))) {
+                if (v.type === 'list' || v.type === 'set' || v.type === 'tuple') {
+                    (v.value || []).forEach(item => {
+                        if (item && (item.type === 'object' || item.type === 'reference')) frontierIds.add(String(item.id));
+                        else if (item) frontierIds.add(item.value);
+                    });
+                }
+            }
+            if (['visited', 'seen', 'visited_set'].some(k => lowercaseName.includes(k))) {
+                if (v.type === 'list' || v.type === 'set' || v.type === 'tuple') {
+                    (v.value || []).forEach(item => {
+                        if (item && (item.type === 'object' || item.type === 'reference')) visitedIds.add(String(item.id));
+                        else if (item) visitedVals.add(item.value);
+                    });
+                }
+            }
+        }
+
+        // Calculate dynamic height based on max node Y position plus space for pointer pills and bottom cycle arcs
+        let maxY = 150;
+        nodeIds.forEach(id => {
+            const pt = globalNodeCoords[id];
+            if (pt && pt.y > maxY) maxY = pt.y;
+        });
+        const svgWidth = 700, svgHeight = Math.max(280, maxY + 110);
+        let svgContent = `<svg viewBox="0 0 ${svgWidth} ${svgHeight}" width="100%" height="100%" class="font-mono select-none" style="overflow: visible;">`;
+        
+        svgContent += `
+        <defs>
+            <filter id="glow-orange" x="-20%" y="-20%" width="140%" height="140%">
+                <feGaussianBlur stdDeviation="3.5" result="blur" />
+                <feComposite in="SourceGraphic" in2="blur" operator="over" />
+            </filter>
+            <filter id="glow-cyan" x="-20%" y="-20%" width="140%" height="140%">
+                <feGaussianBlur stdDeviation="2.5" result="blur" />
+                <feComposite in="SourceGraphic" in2="blur" operator="over" />
+            </filter>
+            <filter id="glow-red" x="-25%" y="-25%" width="150%" height="150%">
+                <feGaussianBlur stdDeviation="4" result="blur" />
+                <feComposite in="SourceGraphic" in2="blur" operator="over" />
+            </filter>
+            
+            <linearGradient id="grad-node-normal" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#1e293b" />
+                <stop offset="100%" stop-color="#0f172a" />
+            </linearGradient>
+            <linearGradient id="grad-node-active" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#b45309" />
+                <stop offset="100%" stop-color="#78350f" />
+            </linearGradient>
+            <linearGradient id="grad-node-visited" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#065f46" />
+                <stop offset="100%" stop-color="#047857" />
+            </linearGradient>
+            
+            <marker id="arrow-cyan" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M 0 1 L 10 5 L 0 9 z" fill="#38bdf8" />
+            </marker>
+            <marker id="arrow-orange" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M 0 1 L 10 5 L 0 9 z" fill="#fbbf24" />
+            </marker>
+            <marker id="arrow-red-pulse" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                <path d="M 0 1 L 10 5 L 0 9 z" fill="#f43f5e" />
+            </marker>
+        </defs>
+        `;
+
+        // Step 1: Draw Links & Cycle Paths between nodes
+        nodeIds.forEach(id => {
+            const from = globalNodeCoords[id];
+            if (!from) return;
+            const obj = globalNodeMap[id];
+            if (!obj || !obj.value) return;
+
+            const drawLink = (childVal, typeLabel) => {
+                if (childVal && (childVal.type === 'object' || childVal.type === 'reference')) {
+                    let toId = String(childVal.id);
+                if (toId.startsWith('@')) toId = toId.substring(1);
+                    if (globalNodeMap[toId]) {
+                        const to = globalNodeCoords[toId];
+                        if (to) {
+                            if (isTraceLinkedList && typeLabel === 'next') {
+                                // Left card exit point (right compartment center)
+                                const startX = from.x + 40, startY = from.y;
+                                // Right card entry point (left edge center)
+                                const endX = to.x - 42, endY = to.y;
+
+                                if (from.x >= to.x && Math.abs(from.y - to.y) < 30) {
+                                    // CYCLE LOOP inside same row! Route smoothly underneath the node cards with glowing ruby-red arc!
+                                    const arcStartX = from.x + 24, arcStartY = from.y + 20;
+                                    const arcEndX = to.x - 24, arcEndY = to.y + 20;
+                                    const controlY = from.y + 68 + Math.abs(from.x - to.x) * 0.15;
+                                    const midX = (arcStartX + arcEndX) / 2;
+
+                                    svgContent += `
+                                    <g>
+                                        <path d="M ${arcStartX} ${arcStartY} Q ${midX} ${controlY} ${arcEndX} ${arcEndY}" fill="none" stroke="#f43f5e" stroke-width="2.8" stroke-dasharray="8,5" marker-end="url(#arrow-red-pulse)" filter="url(#glow-red)">
+                                            <animate attributeName="stroke-dashoffset" from="130" to="0" dur="2s" repeatCount="indefinite" />
+                                        </path>
+                                        <rect x="${midX - 58}" y="${((controlY + from.y) / 2) + 12}" width="116" height="20" rx="10" fill="#881337" stroke="#f43f5e" stroke-width="1.5" filter="url(#glow-red)" />
+                                        <text x="${midX}" y="${((controlY + from.y) / 2) + 26}" fill="#ffe4e6" font-size="9.5" font-weight="800" text-anchor="middle" font-family="'Fira Code', monospace">↻ CYCLE DETECTED</text>
+                                    </g>
+                                    `;
+                                } else if (isTraceLinkedList) {
+                // Secondary pointers in a Linked List (e.g. random, child) - Route them dynamically with high arcs
+                const startX = from.x, startY = from.y - 22;
+                const endX = to.x, endY = to.y - 22;
+                const midX = (startX + endX) / 2;
+                const controlY = startY - 40 - (Math.abs(endX - startX) * 0.15);
+                
+                svgContent += `
+                <g>
+                    <path d="M ${startX} ${startY} Q ${midX} ${controlY} ${endX} ${endY - 6}" fill="none" stroke="#fbbf24" stroke-width="2" stroke-dasharray="6,4" marker-end="url(#arrow-cyan)" filter="url(#glow-cyan)"/>
+                    <text x="${midX}" y="${controlY + 12}" fill="#fbbf24" font-size="9" font-weight="700" text-anchor="middle" font-family="'Fira Code', monospace">${typeLabel}</text>
+                </g>`;
+            } else if (from.x > to.x && isTraceTree) { // Fix: limit row wrap strictly to trees to not mess with graphs!
+                                    // Row wrap to next level
+                                    const midX = (startX + endX) / 2, controlY = from.y + 55;
+                                    svgContent += `<path d="M ${startX} ${startY + 10} Q ${midX} ${controlY} ${endX} ${endY - 10}" fill="none" stroke="#38bdf8" stroke-width="2.2" marker-end="url(#arrow-cyan)" stroke-dasharray="4,4" />`;
+                                } else {
+                                    // Standard forward horizontal link
+                                    svgContent += `
+                                    <g>
+                                        <line x1="${startX}" y1="${startY}" x2="${endX}" y2="${endY}" stroke="#38bdf8" stroke-width="2.5" marker-end="url(#arrow-cyan)" />
+                                        <circle r="3" fill="#38bdf8" filter="url(#glow-cyan)">
+                                            <animateMotion path="M ${startX} ${startY} L ${endX} ${endY}" dur="1.4s" repeatCount="indefinite" />
+                                        </circle>
+                                    </g>
+                                    `;
+                                }
+                            } else {
+                                const dx = to.x - from.x, dy = to.y - from.y, dist = Math.sqrt(dx*dx + dy*dy);
+                                if (dist > 0) {
+                                    const startX = from.x + (dx/dist)*24, startY = from.y + (dy/dist)*24, endX = to.x - (dx/dist)*24, endY = to.y - (dy/dist)*24;
+                                    svgContent += `<line x1="${startX}" y1="${startY}" x2="${endX}" y2="${endY}" stroke="#818cf8" stroke-width="2" marker-end="url(#arrow-cyan)" />`;
+                                }
+                            }
+                        }
+                    }
+                }
+            };
+
+            if (isTraceTree) {
+                const lk = Object.keys(obj.value).find(k => ['left','left_child','lc'].includes(k.toLowerCase()));
+                const rk = Object.keys(obj.value).find(k => ['right','right_child','rc'].includes(k.toLowerCase()));
+                if (lk) drawLink(obj.value[lk], 'L');
+                if (rk) drawLink(obj.value[rk], 'R');
+            } else if (isTraceLinkedList) {
+            const nk = Object.keys(obj.value).find(k => ['next','nxt'].includes(k.toLowerCase())) || 'next';
+            drawLink(obj.value[nk], 'next');
+            // FIX: Iterate and draw secondary pointers (random, child, etc)
+            for (const key in obj.value) {
+                if (key === nk) continue;
+                const attrVal = obj.value[key];
+                if (attrVal) {
+                    if (attrVal.type === 'object' || attrVal.type === 'reference') drawLink(attrVal, key);
+                    else if (attrVal.type === 'list' || attrVal.type === 'set' || attrVal.type === 'tuple') (attrVal.value || []).forEach(item => drawLink(item, key));
+                }
+            }
+        } else {
+                for (const key in obj.value) {
+                    const attrVal = obj.value[key];
+                    if (attrVal) {
+                        if (attrVal.type === 'object' || attrVal.type === 'reference') {
+                            drawLink(attrVal, key);
+                        } else if (attrVal.type === 'list' || attrVal.type === 'set' || attrVal.type === 'tuple') {
+                            (attrVal.value || []).forEach(item => drawLink(item, key));
+                        }
+                    }
+                }
+            }
+        });
+
+        // Step 2: Draw High-Fidelity Node Cards & Pointer Badges
+        nodeIds.forEach(id => {
+            const pt = globalNodeCoords[id];
+            if (!pt) return;
+            const obj = globalNodeMap[id];
+            if (!obj || !obj.value) return;
+            let displayVal = obj.value.val !== undefined ? formatVarValue(obj.value.val) : (obj.value.value !== undefined ? formatVarValue(obj.value.value) : id.substring(0, 5));
+            const cleanNum = id.replace(/^oid_/i, '');
+            const nodeTag = /^oid_/i.test(id) ? `Node #${cleanNum}` : `#${id}`;
+
+            const pointers = [];
+            for (const name in variables) {
+                const v = variables[name];
+                if (v && (v.type === 'object' || v.type === 'reference') && String(v.id) === id) pointers.push(name);
+            }
+            pointers.sort();
+
+            const isCurrOrHead = pointers.some(n => ['curr','node','root','current','head','slow','fast','dummy'].includes(n.toLowerCase()));
+            const isVisited = visitedIds.has(id);
+
+            let cardFill = isCurrOrHead ? 'url(#grad-node-active)' : (isVisited ? 'url(#grad-node-visited)' : 'url(#grad-node-normal)');
+            let cardStroke = isCurrOrHead ? '#fbbf24' : '#38bdf8';
+            let cardFilter = isCurrOrHead ? 'url(#glow-orange)' : 'url(#glow-cyan)';
+
+            if (isTraceLinkedList) {
+                // Two-compartment Memory Card (width 80, height 40)
+                const nextKey = Object.keys(obj.value).find(k => ['next','nxt'].includes(k.toLowerCase())) || 'next';
+                const nextObj = obj.value[nextKey];
+                const hasNext = nextObj && nextObj.type !== 'none' && nextObj.id;
+
+                svgContent += `
+                <g class="transition-all duration-300">
+                    <rect x="${pt.x - 40}" y="${pt.y - 20}" width="80" height="40" rx="8" fill="${cardFill}" stroke="${cardStroke}" stroke-width="${isCurrOrHead ? '2.8' : '2'}" filter="${cardFilter}">
+                        ${isCurrOrHead ? '<animate attributeName="stroke-width" values="2;3.6;2" dur="1.5s" repeatCount="indefinite" />' : ''}
+                    </rect>
+                    
+                    <line x1="${pt.x + 14}" y1="${pt.y - 20}" x2="${pt.x + 14}" y2="${pt.y + 20}" stroke="${isCurrOrHead ? '#f59e0b' : '#334155'}" stroke-width="1.5" />
+                    
+                    <text x="${pt.x - 13}" y="${pt.y + 5}" fill="#f8fafc" font-size="14" font-weight="800" font-family="'Fira Code', monospace" text-anchor="middle">${displayVal}</text>
+                    
+                    ${hasNext ? 
+                        `<circle cx="${pt.x + 27}" cy="${pt.y}" r="4.5" fill="${isCurrOrHead ? '#ffffff' : '#38bdf8'}" stroke="${isCurrOrHead ? '#d97706' : '#0284c7'}" stroke-width="1.5">
+                            ${isCurrOrHead ? '<animate attributeName="r" values="4.5;6;4.5" dur="1.5s" repeatCount="indefinite" />' : ''}
+                        </circle>` : 
+                        `<g>
+                            <circle cx="${pt.x + 27}" cy="${pt.y}" r="4" fill="#334155" />
+                            <line x1="${pt.x + 23}" y1="${pt.y + 6}" x2="${pt.x + 31}" y2="${pt.y - 6}" stroke="#94a3b8" stroke-width="1.5" />
+                        </g>`
+                    }
+                    
+                    <g><rect x="${pt.x - 38}" y="${pt.y + 23}" width="50" height="14" rx="4" fill="#0f172a" stroke="#334155" stroke-width="1" /><text x="${pt.x - 13}" y="${pt.y + 33}" fill="#94a3b8" font-size="8" font-weight="700" text-anchor="middle" font-family="'Fira Code', monospace">${nodeTag}</text></g>
+                </g>
+                `;
+            } else {
+                // Circular or Tree Node Card
+                svgContent += `
+                <g class="transition-all duration-300">
+                    <circle cx="${pt.x}" cy="${pt.y}" r="22" fill="${cardFill}" stroke="${cardStroke}" stroke-width="2.5" filter="${cardFilter}" />
+                    <text x="${pt.x}" y="${pt.y + 5}" fill="#f8fafc" font-size="13" font-weight="800" text-anchor="middle">${displayVal}</text>
+                    <g><rect x="${pt.x - 26}" y="${pt.y + 24}" width="52" height="14" rx="4" fill="#0f172a" stroke="#334155" stroke-width="1" /><text x="${pt.x}" y="${pt.y + 34}" fill="#94a3b8" font-size="8" font-weight="700" text-anchor="middle" font-family="'Fira Code', monospace">${nodeTag}</text></g>
+                </g>
+                `;
+            }
+
+            // Step 3: Draw High-Contrast Glowing Pointer Pills (head, slow, fast)
+            if (pointers.length > 0) {
+                const labelText = pointers.join('  •  ');
+                const pillWidth = Math.max(68, labelText.length * 8.5 + 26);
+                const pillY = pt.y - 48;
+
+                svgContent += `
+                <g class="animate__animated animate__bounceIn">
+                    <line x1="${pt.x}" y1="${pillY + 11}" x2="${pt.x}" y2="${pt.y - 22}" stroke="#fbbf24" stroke-width="2.2" marker-end="url(#arrow-orange)" />
+                    <rect x="${pt.x - pillWidth/2}" y="${pillY - 11}" width="${pillWidth}" height="22" rx="11" fill="#1e1b4b" stroke="#fbbf24" stroke-width="1.8" filter="url(#glow-orange)" />
+                    <text x="${pt.x}" y="${pillY + 4}" fill="#fef08a" font-size="11" font-weight="800" font-family="'Fira Code', monospace" text-anchor="middle">⚡ ${labelText}</text>
+                </g>
+                `;
+            }
+        });
+
+        svgContent += `</svg>`;
+        return svgContent;
+    }
+function renderStackVisualizer(stackVar, name, variables) {
+            const svgWidth = 650, svgHeight = 220;
+            let svgContent = `<svg viewBox="0 0 ${svgWidth} ${svgHeight}" width="100%" height="100%" class="font-mono select-none">`;
+            const items = stackVar.value || [];
+            const N = items.length;
+            if (N === 0) {
+                svgContent += `<text x="325" y="115" fill="#64748b" font-size="11" font-style="italic" text-anchor="middle">Empty Stack</text>`;
+            } else {
+                items.forEach((item, index) => {
+                    const itemVal = formatVarValue(item);
+                    const blockY = 195 - (index + 1) * 26 + 2;
+                    const isTop = index === N - 1;
+                    const blockBg = isTop ? "#78350f" : "#1e222b";
+                    const blockStroke = isTop ? "#fbbf24" : "#4b5563";
+                    const blockText = isTop ? "#fef3c7" : "#f8fafc";
+                    svgContent += `
+                        <g>
+                            <rect x="280" y="${blockY}" width="90" height="22" rx="3" fill="${blockBg}" stroke="${blockStroke}" stroke-width="1.8" />
+                            <text x="325" y="${blockY + 14}" fill="${blockText}" font-size="9" font-weight="bold" text-anchor="middle">${itemVal}</text>
+                        </g>
+                    `;
+                });
+                const topY = 195 - N * 26 + 13;
+                svgContent += `
+                    <g>
+                        <line x1="220" y1="${topY}" x2="265" y2="${topY}" stroke="#fbbf24" stroke-width="1.5" />
+                        <text x="210" y="${topY + 3}" fill="#fbbf24" font-size="9" font-weight="bold" text-anchor="end">TOP</text>
+                    </g>
+                `;
+            }
+            svgContent += `</svg>`;
+            return svgContent;
+        }
+
+        function renderQueueVisualizer(queueVar, name, variables) {
+            const svgWidth = 650, svgHeight = 220;
+            let svgContent = `<svg viewBox="0 0 ${svgWidth} ${svgHeight}" width="100%" height="100%" class="font-mono select-none">`;
+            svgContent += `<line x1="80" y1="90" x2="570" y2="90" stroke="#10b981" stroke-width="2" stroke-dasharray="3,3" />`;
+            svgContent += `<line x1="80" y1="130" x2="570" y2="130" stroke="#10b981" stroke-width="2" stroke-dasharray="3,3" />`;
+            const items = queueVar.value || [];
+            const N = items.length;
+            if (N === 0) {
+                svgContent += `<text x="325" y="114" fill="#64748b" font-size="11" font-style="italic" text-anchor="middle">Empty Queue</text>`;
+            } else {
+                items.forEach((item, index) => {
+                    const itemVal = formatVarValue(item);
+                    const blockX = 100 + index * 50;
+                    svgContent += `
+                        <g>
+                            <rect x="${blockX}" y="95" width="42" height="30" rx="4" fill="#0d2b26" stroke="#2dd4bf" stroke-width="1.8" />
+                            <text x="${blockX + 21}" y="113" fill="#ccfbf1" font-size="9" font-weight="bold" text-anchor="middle">${itemVal}</text>
+                        </g>
+                    `;
+                });
+            }
+            svgContent += `</svg>`;
+            return svgContent;
+        }
+
+        
+function renderMatrixVisualizer(matrixVar, name, variables) {
+    const rows = matrixVar.value || [];
+    if (!rows.length) return `<div style="padding: 20px; color: var(--text-muted); text-align: center;">Empty Matrix</div>`;
+    
+    // Find active grid pointers
+    const activePointers = [];
+    for (let p in variables) {
+        if (p === name || p.startsWith('_')) continue;
+        const v1 = variables[p];
+        const val1 = (v1 && typeof v1 === 'object' && v1.type === 'int') ? v1.value : v1;
+        if (typeof val1 === 'number' && Number.isInteger(val1)) {
+            activePointers.push({ name: p, value: val1 });
+        }
+    }
+
+    let r_ptrs = activePointers.filter(p => ['r', 'row', 'y', 'i', 'r1', 'r2', 'row1', 'row2'].includes(p.name.toLowerCase()));
+    let c_ptrs = activePointers.filter(p => ['c', 'col', 'x', 'j', 'c1', 'c2', 'col1', 'col2'].includes(p.name.toLowerCase()));
+    
+    let html = `<div style="display: flex; flex-direction: column; align-items: center; max-height: 600px; overflow: auto; padding: 10px;">`;
+    html += `<table style="border-collapse: collapse; background: var(--bg-surface); border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">`;
+    
+    // Column headers
+    html += `<tr><th style="padding: 6px; color: var(--text-muted); border-bottom: 2px solid var(--border-color); border-right: 2px solid var(--border-color); background: rgba(0,0,0,0.2);"></th>`;
+    let maxCols = 0;
+    rows.forEach(r => maxCols = Math.max(maxCols, (r.value || []).length));
+    for (let c = 0; c < maxCols; c++) {
+        html += `<th style="padding: 8px 12px; color: var(--text-muted); font-size: 12px; border-bottom: 2px solid var(--border-color); background: rgba(0,0,0,0.2);">${c}</th>`;
+    }
+    html += `</tr>`;
+    
+    rows.forEach((rowObj, r) => {
+        let cols = rowObj.value || [];
+        html += `<tr>`;
+        html += `<th style="padding: 8px 12px; color: var(--text-muted); font-size: 12px; border-right: 2px solid var(--border-color); background: rgba(0,0,0,0.2);">${r}</th>`;
+        for (let c = 0; c < maxCols; c++) {
+            let cellVal = cols[c] ? formatVarValue(cols[c]) : '';
+            if (cellVal === '""' || cellVal === "''" || cellVal.trim() === '') cellVal = '&nbsp;';
+            
+            // Highlight check
+            let isTarget = false;
+            let pLabel = "";
+            
+            r_ptrs.forEach(rp => {
+                c_ptrs.forEach(cp => {
+                    if (rp.value === r && cp.value === c) {
+                        isTarget = true;
+                        pLabel = `${rp.name},${cp.name}`;
+                    }
+                });
+            });
+            
+            let cellStyle = `padding: 12px 16px; border: 1px solid var(--border-color); text-align: center; font-family: monospace; position: relative; transition: all 0.3s ease;`;
+            if (isTarget) {
+                cellStyle += `background: rgba(56, 189, 248, 0.15); box-shadow: inset 0 0 0 2px #38bdf8; color: #38bdf8; font-weight: bold;`;
+            } else if (cellVal !== '&nbsp;' && cellVal !== '0' && cellVal !== "'.'" && cellVal !== 'None' && cellVal !== 'null') {
+                cellStyle += `color: var(--text-primary); font-weight: bold;`;
+            } else {
+                cellStyle += `color: var(--text-muted);`;
+            }
+            
+            html += `<td style="${cellStyle}">`;
+            // Strip the quotes for better visualization in matrices if it's a character
+            let displayVal = cellVal;
+            if (displayVal.startsWith("'") && displayVal.endsWith("'")) displayVal = displayVal.substring(1, displayVal.length-1);
+            if (displayVal.startsWith('"') && displayVal.endsWith('"')) displayVal = displayVal.substring(1, displayVal.length-1);
+            if (displayVal === '.') displayVal = '<span style="opacity: 0.3;">.</span>'; // dim Sudoku empty dots
+            
+            html += displayVal;
+            if (isTarget) {
+                html += `<div style="position: absolute; top: -8px; right: -8px; background: #38bdf8; color: #0f172a; font-size: 9px; padding: 2px 4px; border-radius: 4px; font-weight: bold; box-shadow: 0 0 8px rgba(56,189,248,0.6); z-index: 10;">${pLabel}</div>`;
+            }
+            html += `</td>`;
+        }
+        html += `</tr>`;
+    });
+    
+    html += `</table></div>`;
+    return html;
+}
+
+function renderArrayVisualizer(arrayVar, name, variables) {
+            const svgWidth = 650, svgHeight = 220;
+            let svgContent = `<svg viewBox="0 0 ${svgWidth} ${svgHeight}" width="100%" height="100%" class="font-mono select-none">`;
+            const items = arrayVar.value || [];
+            const N = items.length;
+            const cellWidth = 42, cellSpacing = 8;
+            const totalWidth = N * (cellWidth + cellSpacing) - cellSpacing;
+            const startX = (650 - totalWidth) / 2;
+
+            items.forEach((item, index) => {
+                const itemVal = formatVarValue(item);
+                const cellX = startX + index * 50;
+                svgContent += `
+                    <g>
+                        <rect x="${cellX}" y="90" width="42" height="32" rx="4" fill="#1e222b" stroke="#4b5563" stroke-width="1.5" />
+                        <text x="${cellX + 21}" y="110" fill="#f8fafc" font-size="10" font-weight="bold" text-anchor="middle">${itemVal}</text>
+                        <text x="${cellX + 21}" y="136" fill="#64748b" font-size="8" text-anchor="middle">[${index}]</text>
+                    </g>
+                `;
+            });
+            svgContent += `</svg>`;
+            return svgContent;
+        }
+
+        // Navigation Controls
+        function goToStep(idx) {
+            if (isPlaying) togglePlayPause();
+            renderStep(idx);
+        }
+
+        function stepPrevious() {
+            if (currentStepIndex > 0) {
+                if (isPlaying) togglePlayPause();
+                renderStep(currentStepIndex - 1);
+            }
+        }
+
+        function stepNext() {
+            if (currentStepIndex < traceSteps.length - 1) {
+                if (isPlaying && currentStepIndex + 1 === traceSteps.length - 1) {
+                    renderStep(currentStepIndex + 1);
+                    togglePlayPause();
+                } else {
+                    renderStep(currentStepIndex + 1);
+                }
+            } else if (isPlaying) {
+                togglePlayPause();
+            }
+        }
+
+        function onTimelineScrubberChange(val) {
+            if (isPlaying) togglePlayPause();
+            renderStep(parseInt(val, 10));
+        }
+
+        function togglePlayPause() {
+            const btn = document.getElementById('btnPlayPause');
+            const icon = document.getElementById('playIcon');
+            if (!isPlaying) {
+                if (currentStepIndex >= traceSteps.length - 1) currentStepIndex = 0;
+                isPlaying = true;
+                icon.className = 'fas fa-pause';
+                btn.innerHTML = `<i class="fas fa-pause" id="playIcon"></i> Pause`;
+                playInterval = setInterval(() => {
+                    if (currentStepIndex < traceSteps.length - 1) {
+                        renderStep(currentStepIndex + 1);
+                    } else {
+                        togglePlayPause();
+                    }
+                }, playIntervalMs);
+            } else {
+                isPlaying = false;
+                icon.className = 'fas fa-play';
+                btn.innerHTML = `<i class="fas fa-play" id="playIcon"></i> Play`;
+                if (playInterval) clearInterval(playInterval);
+            }
+        }
+
+        function updatePlaybackSpeed() {
+            playIntervalMs = parseInt(document.getElementById('playbackSpeed').value, 10);
+            if (isPlaying) {
+                clearInterval(playInterval);
+                playInterval = setInterval(() => {
+                    if (currentStepIndex < traceSteps.length - 1) {
+                        renderStep(currentStepIndex + 1);
+                    } else {
+                        togglePlayPause();
+                    }
+                }, playIntervalMs);
+            }
+        }
+
+        // Client-side Fallback Simulator for instant response or JavaScript code
+        function simulatePythonTraceFallback(code, funcName, args) {
+            const lines = code.split('\n');
+            const steps = [];
+            let locals = {};
+
+            // Map sample args to target func signature
+            if (args && args.length > 0) {
+                locals['arg_0'] = args[0];
+                if (args.length > 1) locals['arg_1'] = args[1];
+            }
+
+            lines.forEach((line, i) => {
+                const lineno = i + 1;
+                const trimmed = line.trim();
+                if (!trimmed || trimmed.startsWith('#')) return;
+
+                // Simulate line execution changes
+                const newLocals = JSON.parse(JSON.stringify(locals));
+                if (trimmed.includes('=')) {
+                    const parts = trimmed.split('=');
+                    const varName = parts[0].trim();
+                    const valPart = parts[1].trim();
+                    if (!varName.includes('.')) {
+                        if (valPart.startsWith('[') && valPart.endsWith(']')) {
+                            try { newLocals[varName] = JSON.parse(valPart); } catch(e) { newLocals[varName] = [0, 1]; }
+                        } else if (!isNaN(valPart)) {
+                            newLocals[varName] = Number(valPart);
+                        } else if (valPart === '{}') {
+                            newLocals[varName] = {};
+                        } else {
+                            newLocals[varName] = valPart;
+                        }
+                    }
+                }
+
+                steps.push({
+                    lineno: lineno,
+                    func_name: funcName || 'two_sum',
+                    event: trimmed.startsWith('return') ? 'return' : 'line',
+                    locals: newLocals,
+                    return_value: trimmed.startsWith('return') ? [0, 1] : undefined,
+                    stdout: trimmed.startsWith('print') ? `Output: ${trimmed}` : undefined
+                });
+
+                locals = newLocals;
+            });
+
+            initializeTraceSession(steps);
+        }
+
+        function simulateJavaScriptTrace(code, funcName, args) {
+            simulatePythonTraceFallback(code, funcName, args);
+        }
+
+        function logout() {
+            localStorage.clear();
+            window.location.href = 'index.html';
+        }
+
+        // Keyboard shortcuts for debugger playback
+        document.addEventListener('keydown', (e) => {
+            if (document.activeElement && (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA' || document.activeElement.tagName === 'SELECT')) return;
+            if (e.code === 'Space') {
+                e.preventDefault();
+                if (!document.getElementById('btnPlayPause').disabled) togglePlayPause();
+            } else if (e.code === 'ArrowRight') {
+                e.preventDefault();
+                if (!document.getElementById('btnNext').disabled) stepNext();
+            } else if (e.code === 'ArrowLeft') {
+                e.preventDefault();
+                if (!document.getElementById('btnPrev').disabled) stepPrevious();
+            }
+        });
+
+        // ==========================================
+        // ZOOM, PAN & SCROLLBAR ENGINE (DS & FLOWCHART)
+        // ==========================================
+        let dsScale = 1.0, dsPanX = 0, dsPanY = 0, isDsDragging = false, dsStartX = 0, dsStartY = 0;
+        let fcScale = 1.0, fcPanX = 0, fcPanY = 0, isFcDragging = false, fcStartX = 0, fcStartY = 0;
+
+        function zoomCanvas(delta, target = 'ds') {
+            if (target === 'ds') {
+                dsScale = Math.max(0.3, Math.min(3.0, dsScale + delta));
+                const lbl = document.getElementById('dsZoomLabel');
+                if (lbl) lbl.textContent = Math.round(dsScale * 100) + '%';
+                applyDsTransform();
+            } else {
+                fcScale = Math.max(0.3, Math.min(3.0, fcScale + delta));
+                const lbl = document.getElementById('fcZoomLabel');
+                if (lbl) lbl.textContent = Math.round(fcScale * 100) + '%';
+                applyFcTransform();
+            }
+        }
+
+        function resetCanvasZoom(target = 'ds') {
+            if (target === 'ds') {
+                dsScale = 1.0; dsPanX = 0; dsPanY = 0;
+                const lbl = document.getElementById('dsZoomLabel');
+                if (lbl) lbl.textContent = '100%';
+                applyDsTransform();
+            } else {
+                fcScale = 1.0; fcPanX = 0; fcPanY = 0;
+                const lbl = document.getElementById('fcZoomLabel');
+                if (lbl) lbl.textContent = '100%';
+                applyFcTransform();
+            }
+        }
+
+        function applyDsTransform() {
+            const inner = document.getElementById('dataStructContainer');
+            if (inner) {
+                inner.style.transform = `translate(${dsPanX}px, ${dsPanY}px) scale(${dsScale})`;
+            }
+        }
+
+        function applyFcTransform() {
+            const inner = document.getElementById('flowchartContainer');
+            if (inner) {
+                inner.style.transform = `translate(${fcPanX}px, ${fcPanY}px) scale(${fcScale})`;
+            }
+        }
+
+        function setupCanvasPanZoom(viewportId, target) {
+            const viewport = document.getElementById(viewportId);
+            if (!viewport) return;
+
+            viewport.addEventListener('mousedown', (e) => {
+                if (e.target.closest('button')) return;
+                if (target === 'ds') {
+                    isDsDragging = true;
+                    dsStartX = e.clientX - dsPanX;
+                    dsStartY = e.clientY - dsPanY;
+                } else {
+                    isFcDragging = true;
+                    fcStartX = e.clientX - fcPanX;
+                    fcStartY = e.clientY - fcPanY;
+                }
+                viewport.style.cursor = 'grabbing';
+            });
+
+            window.addEventListener('mousemove', (e) => {
+                if (isDsDragging && target === 'ds') {
+                    dsPanX = e.clientX - dsStartX;
+                    dsPanY = e.clientY - dsStartY;
+                    applyDsTransform();
+                } else if (isFcDragging && target === 'fc') {
+                    fcPanX = e.clientX - fcStartX;
+                    fcPanY = e.clientY - fcStartY;
+                    applyFcTransform();
+                }
+            });
+
+            window.addEventListener('mouseup', () => {
+                isDsDragging = false;
+                isFcDragging = false;
+                if (viewport) viewport.style.cursor = 'grab';
+            });
+
+            viewport.addEventListener('wheel', (e) => {
+                if (e.ctrlKey || e.shiftKey || e.altKey) {
+                    e.preventDefault();
+                    const delta = e.deltaY < 0 ? 0.1 : -0.1;
+                    zoomCanvas(delta, target);
+                }
+            });
+        }
+
+        // ==========================================
+        // ALGORITHM FLOWCHART GENERATION ENGINE
+        // ==========================================
+        function generateAlgorithmFlowchart() {
+            const container = document.getElementById('flowchartContainer');
+            if (!container) return;
+            const code = getEditorCode();
+            const funcName = document.getElementById('funcNameInput').value || 'algorithm';
+            const args = document.getElementById('funcArgsInput').value || '';
+
+            let html = `
+                <div class="flow-node-card type-start" id="flow-node-line-1">
+                    <i class="fas fa-play-circle" style="margin-right: 6px;"></i> START: <strong>${funcName}</strong>(${args})
+                </div>
+                <div class="flow-connector"><i class="fas fa-long-arrow-alt-down"></i></div>
+            `;
+
+            const lines = code.split('\n');
+            let hasNodes = false;
+            lines.forEach((rawLine, idx) => {
+                const lineno = idx + 1;
+                const line = rawLine.trim();
+                if (!line || line.startsWith('#') || line.startsWith('"""') || line.startsWith("'''") || line.startsWith('def ') || line.startsWith('function ')) return;
+
+                let cardClass = 'type-op';
+                let icon = 'fa-cog';
+                let label = line;
+
+                if (line.startsWith('if ') || line.startsWith('elif ') || line.startsWith('else:')) {
+                    cardClass = 'type-decision';
+                    icon = 'fa-code-branch';
+                    if (line.endsWith(':')) label = label.slice(0, -1);
+                } else if (line.startsWith('while ') || line.startsWith('for ')) {
+                    cardClass = 'type-loop';
+                    icon = 'fa-redo-alt';
+                    if (line.endsWith(':')) label = label.slice(0, -1);
+                } else if (line.startsWith('return ')) {
+                    cardClass = 'type-return';
+                    icon = 'fa-flag-checkered';
+                }
+
+                html += `
+                    <div class="flow-node-card ${cardClass}" id="flow-node-line-${lineno}">
+                        <div style="font-size: 0.72rem; opacity: 0.75; margin-bottom: 4px; letter-spacing: 0.5px;">LINE ${lineno} • ${cardClass.replace('type-', '').toUpperCase()}</div>
+                        <div style="font-family: 'Fira Code', monospace; font-size: 0.88rem;"><i class="fas ${icon}" style="margin-right: 6px;"></i> <code>${label}</code></div>
+                    </div>
+                    <div class="flow-connector"><i class="fas fa-long-arrow-alt-down"></i></div>
+                `;
+                hasNodes = true;
+            });
+
+            if (!hasNodes) {
+                html += `
+                    <div class="flow-node-card type-op">
+                        <i class="fas fa-magic"></i> Execute Algorithm Scope
+                    </div>
+                    <div class="flow-connector"><i class="fas fa-long-arrow-alt-down"></i></div>
+                `;
+            }
+
+            html += `
+                <div class="flow-node-card type-return" style="border-radius: 50px;">
+                    <i class="fas fa-stop-circle" style="margin-right: 6px;"></i> END / RETURN
+                </div>
+            `;
+
+            container.innerHTML = html;
+        }
+
+        function updateFlowchartHighlight(activeLine) {
+            document.querySelectorAll('.flow-node-card').forEach(card => card.classList.remove('active-flow'));
+            if (!activeLine) return;
+            const target = document.getElementById(`flow-node-line-${activeLine}`);
+            if (target) {
+                target.classList.add('active-flow');
+                const panel = document.getElementById('panelFlowchart');
+                if (panel && panel.style.display !== 'none') {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }
+        }
+
+        // Initialize drag & zoom handlers on load
+        // ==========================================
+// INTERACTIVE DOMAIN BACKGROUND ENGINE
+// ==========================================
+function setupInteractiveDomainBg() {
+    const bgContainer = document.getElementById('interactiveDomainBg');
+    const mouseGlow = document.getElementById('interactiveMouseGlow');
+    const canvas = document.getElementById('domainNetworkCanvas');
+    if (!bgContainer || !canvas) return;
+
+    const ctx = canvas.getContext('2d');
+    let width = bgContainer.clientWidth || window.innerWidth - 260;
+    let height = bgContainer.clientHeight || window.innerHeight;
+    canvas.width = width;
+    canvas.height = height;
+
+    window.addEventListener('resize', () => {
+        width = bgContainer.clientWidth || window.innerWidth - 260;
+        height = bgContainer.clientHeight || window.innerHeight;
+        canvas.width = width;
+        canvas.height = height;
+    });
+
+    let mouseX = -1000, mouseY = -1000;
+
+    window.addEventListener('mousemove', (e) => {
+        const rect = bgContainer.getBoundingClientRect();
+        mouseX = e.clientX - rect.left;
+        mouseY = e.clientY - rect.top;
+        if (mouseGlow) {
+            mouseGlow.style.setProperty('--mouse-x', `${mouseX}px`);
+            mouseGlow.style.setProperty('--mouse-y', `${mouseY}px`);
+            mouseGlow.style.opacity = '1';
+        }
+    });
+
+    window.addEventListener('mouseleave', () => {
+        if (mouseGlow) mouseGlow.style.opacity = '0';
+        mouseX = -1000;
+        mouseY = -1000;
+    });
+
+    // Create algorithmic graph nodes
+    const nodeCount = Math.min(50, Math.floor((width * height) / 16000));
+    const nodes = [];
+    const colors = ['#38bdf8', '#fbbf24', '#818cf8', '#ec4899', '#a855f7'];
+
+    for (let i = 0; i < nodeCount; i++) {
+        nodes.push({
+            x: Math.random() * width,
+            y: Math.random() * height,
+            vx: (Math.random() - 0.5) * 0.55,
+            vy: (Math.random() - 0.5) * 0.55,
+            radius: Math.random() * 2.2 + 1.6,
+            color: colors[Math.floor(Math.random() * colors.length)],
+            alpha: Math.random() * 0.5 + 0.35
+        });
+    }
+
+    function animateNetwork() {
+        ctx.clearRect(0, 0, width, height);
+
+        for (let i = 0; i < nodes.length; i++) {
+            const n = nodes[i];
+            n.x += n.vx;
+            n.y += n.vy;
+
+            if (n.x < 0 || n.x > width) n.vx *= -1;
+            if (n.y < 0 || n.y > height) n.vy *= -1;
+
+            // Draw node dot
+            ctx.beginPath();
+            ctx.arc(n.x, n.y, n.radius, 0, Math.PI * 2);
+            ctx.fillStyle = n.color;
+            ctx.globalAlpha = n.alpha;
+            ctx.fill();
+
+            // Connect nearby nodes
+            for (let j = i + 1; j < nodes.length; j++) {
+                const n2 = nodes[j];
+                const dx = n.x - n2.x;
+                const dy = n.y - n2.y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+
+                if (dist < 125) {
+                    ctx.beginPath();
+                    ctx.moveTo(n.x, n.y);
+                    ctx.lineTo(n2.x, n2.y);
+                    ctx.strokeStyle = '#6366f1';
+                    ctx.globalAlpha = (1 - dist / 125) * 0.18;
+                    ctx.lineWidth = 1;
+                    ctx.stroke();
+                }
+            }
+
+            // Interactive connection to mouse cursor
+            if (mouseX > -500 && mouseY > -500) {
+                const dx = n.x - mouseX;
+                const dy = n.y - mouseY;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+
+                if (dist < 155) {
+                    ctx.beginPath();
+                    ctx.moveTo(n.x, n.y);
+                    ctx.lineTo(mouseX, mouseY);
+                    ctx.strokeStyle = '#fbbf24';
+                    ctx.globalAlpha = (1 - dist / 155) * 0.38;
+                    ctx.lineWidth = 1.3;
+                    ctx.stroke();
+
+                    // Subtle magnetic pull
+                    n.x -= (dx / dist) * 0.15;
+                    n.y -= (dy / dist) * 0.15;
+                }
+            }
+        }
+        ctx.globalAlpha = 1.0;
+        requestAnimationFrame(animateNetwork);
+    }
+    animateNetwork();
+}
+
+
+window.addEventListener('DOMContentLoaded', () => {
+            setupCanvasPanZoom('dataStructViewport', 'ds');
+            setupCanvasPanZoom('flowchartViewport', 'fc');
+    setupInteractiveDomainBg();
+        });
+    </script>
+</body>
+</html>

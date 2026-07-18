@@ -1,0 +1,871 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard | AlgoMentor</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+
+    <style>
+        /* ==========================================================================
+           AlgoMentor Premium White & Tech Orange Visual Styles Override
+           ========================================================================== */
+        :root {
+            --bg-main: #f8fafc;
+            --bg-sidebar: #ffffff;
+            --text-primary: #0f172a;
+            --text-secondary: #64748b;
+            --orange: #FF6B00;
+            --orange-hover: #e05e00;
+            --orange-light: rgba(255, 107, 0, 0.08);
+            --card-bg: #ffffff;
+            --border-color: #e2e8f0;
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.05);
+            --shadow-md: 0 4px 20px -2px rgba(15, 23, 42, 0.06);
+            --radius: 12px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        body.dashboard-body {
+            background-color: var(--bg-main) !important;
+            color: var(--text-primary) !important;
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar Styling */
+        /* Sidebar Styling (Consistent Pixel-Perfect Alignment) */
+        .sidebar {
+            width: 260px;
+            background: var(--bg-sidebar) !important;
+            border-right: 1px solid var(--border-color) !important;
+            display: flex;
+            flex-direction: column;
+            padding: 2rem 1.5rem !important;
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            z-index: 90;
+        }
+
+        .sidebar .logo {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--text-primary) !important;
+            margin-bottom: 3rem !important;
+            padding-left: 0;
+        }
+
+        .sidebar .logo span { color: var(--orange) !important; }
+
+        .sidebar ul {
+            list-style: none;
+            margin-top: 40px !important;
+            display: flex;
+            flex-direction: column;
+            gap: 0 !important;
+        }
+
+        .sidebar ul li, .sidebar li {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.85rem 1rem !important;
+            margin-bottom: 10px !important;
+            color: var(--text-secondary) !important;
+            font-weight: 500;
+            font-size: 0.95rem;
+            border-radius: var(--radius) !important;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .sidebar ul li:hover, .sidebar li:hover {
+            background: var(--orange-light) !important;
+            color: var(--orange) !important;
+            transform: none !important;
+        }
+
+        .sidebar ul li.active, .sidebar li.active {
+            background: var(--orange) !important;
+            color: #ffffff !important;
+            box-shadow: 0 4px 14px rgba(255, 107, 0, 0.3) !important;
+        }
+
+        /* Main Workspace Content Area */
+        .dashboard-main {
+            margin-left: 260px;
+            flex-grow: 1;
+            padding: 2.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .dashboard-header h1 { font-size: 2rem; font-weight: 800; }
+        .dashboard-header p { color: var(--text-secondary); }
+
+        /* Profile Pill Box */
+        .profile-card {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            background: var(--card-bg) !important;
+            padding: 0.6rem 1.2rem;
+            border-radius: 50px !important;
+            border: 1px solid var(--border-color) !important;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .profile-card .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--orange) !important;
+            color: #ffffff !important;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+        }
+
+        /* Hero Challenge Banner */
+        .hero-card {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%) !important;
+            color: #ffffff !important;
+            padding: 2.5rem;
+            border-radius: var(--radius) !important;
+            box-shadow: var(--shadow-md);
+        }
+
+        .hero-card p { color: #94a3b8 !important; }
+        .hero-graphic i { color: rgba(255, 107, 0, 0.8) !important; font-size: 4.5rem; }
+
+        /* Stats Layer Cards */
+        .stat-card {
+            background: var(--card-bg) !important;
+            border: 1px solid var(--border-color) !important;
+            padding: 1.5rem;
+            border-radius: var(--radius) !important;
+            box-shadow: var(--shadow-sm);
+            transition: var(--transition);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-md);
+            border-color: rgba(255, 107, 0, 0.3) !important;
+        }
+
+        .stat-card h2 { font-size: 2.25rem; font-weight: 800; }
+        .stat-icon-wrapper i { color: var(--orange) !important; }
+
+        /* Core Cards and Daily Challenge Widget */
+        .glass-card {
+            background: var(--card-bg) !important;
+            border: 1px solid var(--border-color) !important;
+            padding: 1.75rem;
+            border-radius: var(--radius) !important;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .challenge-card {
+            background: linear-gradient(to bottom right, #ffffff, #fff7ed) !important;
+            border: 1px solid rgba(255, 107, 0, 0.15) !important;
+        }
+
+        .challenge-badge {
+            background: var(--orange-light) !important;
+            color: var(--orange) !important;
+            font-weight: 700;
+            padding: 0.35rem 0.75rem;
+            border-radius: 50px;
+            text-transform: uppercase;
+        }
+
+        .btn-primary {
+            background: var(--orange) !important;
+            color: #ffffff !important;
+            border: none;
+            border-radius: var(--radius);
+            padding: 0.85rem 1.5rem;
+            cursor: pointer;
+            font-weight: 600;
+            transition: var(--transition);
+        }
+
+        .btn-primary:hover {
+            background: var(--orange-hover) !important;
+            box-shadow: 0 6px 16px rgba(255, 107, 0, 0.3);
+        }
+
+        /* Activity Feeds logs */
+        .activity {
+            background: var(--bg-main) !important;
+            border: 1px solid var(--border-color) !important;
+            border-radius: var(--radius) !important;
+            padding: 0.85rem 1rem;
+            transition: var(--transition);
+        }
+
+        .activity:hover { transform: translateX(4px); }
+        .activity-status.success { background: #d1fae5 !important; color: #065f46 !important; }
+        .activity-status.failed { background: #fee2e2 !important; color: #991b1b !important; }
+
+        /* Drawer Sliding Panels */
+        .problem-drawer {
+            background: var(--bg-sidebar) !important;
+            border-left: 1px solid var(--border-color) !important;
+            box-shadow: -4px 0 30px rgba(15, 23, 42, 0.08) !important;
+        }
+
+        .search-wrapper input {
+            border: 1px solid var(--border-color) !important;
+            background: var(--bg-main) !important;
+            border-radius: var(--radius);
+        }
+
+        .search-wrapper input:focus { border-color: var(--orange) !important; background: #ffffff !important; }
+
+        .problem-row {
+            background: var(--bg-main) !important;
+            border: 1px solid var(--border-color) !important;
+            border-radius: var(--radius) !important;
+        }
+
+        .problem-row:hover { border-color: var(--orange) !important; background: #ffffff !important; }
+        .difficulty-badge.easy { background: #d1fae5 !important; color: #065f46 !important; }
+        .difficulty-badge.medium { background: #fef3c7 !important; color: #92400e !important; }
+        .difficulty-badge.hard { background: #fee2e2 !important; color: #991b1b !important; }
+
+        /* Dashboard Specific Enhancements */
+        .resume-banner {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: #ffffff;
+            padding: 20px 24px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-md);
+            margin-bottom: 28px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+            border-left: 4px solid var(--orange);
+        }
+
+        .resume-banner .resume-info h3 {
+            margin: 0 0 4px 0;
+            font-size: 1.15rem;
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .resume-banner .resume-info p {
+            margin: 0;
+            font-size: 0.88rem;
+            color: #cbd5e1;
+            font-weight: 600;
+        }
+
+        .xp-track {
+            height: 8px;
+            background: #f1f5f9;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-top: 10px;
+            width: 100%;
+        }
+
+        .xp-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--orange), #ff9500);
+            border-radius: 8px;
+            transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .category-shortcuts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+            gap: 16px;
+            margin-top: 28px;
+        }
+
+        .shortcut-card {
+            background: var(--white);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            padding: 18px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            cursor: pointer;
+            transition: var(--transition);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .shortcut-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--orange);
+            box-shadow: var(--shadow-md);
+        }
+
+        .shortcut-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 10px;
+            background: var(--orange-light);
+            color: var(--orange);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+        }
+
+        .shortcut-text h4 {
+            margin: 0 0 4px 0;
+            font-size: 0.95rem;
+            color: var(--text-primary);
+            font-weight: 700;
+        }
+
+        .shortcut-text span {
+            font-size: 0.78rem;
+            color: var(--text-secondary);
+            font-weight: 600;
+        }
+
+        /* Interactive Rank & XP Info Tooltip Button & Modal */
+        .rank-info-btn {
+            background: rgba(255, 107, 0, 0.1);
+            color: var(--orange);
+            border: 1px solid rgba(255, 107, 0, 0.3);
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-left: 8px;
+            transition: var(--transition);
+            vertical-align: middle;
+            box-shadow: 0 2px 4px rgba(255, 107, 0, 0.15);
+        }
+        .rank-info-btn:hover {
+            background: var(--orange);
+            color: #ffffff;
+            transform: scale(1.15);
+            box-shadow: 0 4px 10px rgba(255, 107, 0, 0.4);
+        }
+        .rules-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(15, 23, 42, 0.65);
+            backdrop-filter: blur(6px);
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        .rules-modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .rules-modal {
+            background: var(--bg-main);
+            border: 1px solid var(--border-color);
+            border-radius: 18px;
+            width: 90%;
+            max-width: 540px;
+            padding: 28px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+            transform: translateY(24px) scale(0.95);
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            position: relative;
+        }
+        .rules-modal-overlay.active .rules-modal {
+            transform: translateY(0) scale(1);
+        }
+        .rules-modal h3 {
+            margin: 0 0 14px 0;
+            font-size: 1.35rem;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .rules-tier-list {
+            margin: 16px 0;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .rules-tier-item {
+            background: #f8fafc;
+            border: 1px solid var(--border-color);
+            padding: 10px 16px;
+            border-radius: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.88rem;
+        }
+        .rules-tier-item strong { color: var(--text-primary); }
+        .rules-tier-item span { color: var(--text-secondary); font-weight: 600; }
+    </style>
+</head>
+
+<body class="dashboard-body animate__animated animate__fadeIn">
+
+    <aside class="sidebar">
+        <div class="logo">
+            Algo<span>Mentor</span>
+        </div>
+        <ul>
+            <li class="active" onclick="window.location.href='dashboard.html'">
+                <i class="fas fa-columns"></i>
+                Dashboard
+            </li>
+            <li onclick="window.location.href='problems.html'">
+                <i class="fas fa-code"></i>
+                Problems
+            </li>
+            <li onclick="window.location.href='progress.html'">
+                <i class="fas fa-chart-bar"></i>
+                Progress
+            </li>
+            <li>
+                <i class="fas fa-robot"></i>
+                AI Mentor
+            </li>
+            <li onclick="window.location.href='recommendations.html'">
+                <i class="fas fa-lightbulb"></i>
+                Recommendations
+            </li>
+            <li onclick="window.location.href='visualizer.html'">
+                <i class="fas fa-magic"></i>
+                Visualizer Engine
+            </li>
+            <li onclick="window.location.href='profile.html'">
+                <i class="fas fa-user-circle"></i>
+                Profile
+            </li>
+            <li onclick="logout()">
+                <i class="fas fa-sign-out-alt"></i>
+                Logout
+            </li>
+        </ul>
+    </aside>
+
+    <canvas id="ambientOrangeCanvas" style="position: fixed; top: 0; left: 260px; width: calc(100vw - 260px); height: 100vh; z-index: 0; pointer-events: none; opacity: 0.88;"></canvas>
+
+    <main class="dashboard-main">
+
+        <header class="dashboard-header animate__animated animate__slideInDown">
+            <div>
+                <h1>Welcome Back, <span id="welcomeUserName" style="color: var(--orange);">Developer</span> 👋</h1>
+                <p>Continue your coding journey</p>
+            </div>
+
+            <div class="profile-card" onclick="window.location.href='profile.html'" title="Click to view/edit your Profile">
+                <div class="avatar" style="overflow:hidden;">-</div>
+                <div>
+                    <h3 id="username" style="font-size: 0.95rem; font-weight: 700; margin: 0;">-</h3>
+                    <span style="font-size: 0.75rem; color: var(--text-secondary); display: flex; align-items: center; gap: 4px;">
+                        <span style="width: 6px; height: 6px; background: #22c55e; border-radius: 50%; display: inline-block;"></span> Online
+                    </span>
+                </div>
+            </div>
+        </header>
+
+        <section class="hero-card animate__animated animate__zoomIn">
+            <div class="hero-card-content">
+                <h2>Ready For Today's Challenge?</h2>
+                <p>Solve curated algorithmic puzzles daily, master optimization methods, and accelerate your dynamic engineering skills cleanly.</p>
+            </div>
+            <div class="hero-graphic">
+                <i class="fas fa-laptop-code"></i>
+            </div>
+        </section>
+
+        <div id="dashResumeBannerContainer"></div>
+
+        <section class="stats-grid">
+            <div class="stat-card animate__animated animate__fadeInUp" style="animation-delay: 0.1s;">
+                <h2 id="dashSolvedCount">0</h2>
+                <p id="dashSolvedSubtext">Problems Solved</p>
+                <div class="stat-icon-wrapper"><i class="fas fa-check-circle"></i></div>
+            </div>
+            <div class="stat-card animate__animated animate__fadeInUp" style="animation-delay: 0.2s;">
+                <h2 id="dashStreakDays">0</h2>
+                <p>Day Streak 🔥</p>
+                <div class="stat-icon-wrapper"><i class="fas fa-fire"></i></div>
+            </div>
+            <div class="stat-card animate__animated animate__fadeInUp" style="animation-delay: 0.3s;">
+                <h2 style="display: flex; align-items: center; justify-content: space-between;">
+                    <span id="dashLevelTitle" style="font-size: 1.4rem; color: var(--orange);">Level 1</span>
+                    <button class="rank-info-btn" onclick="openRulesModal()" title="View AlgoMaster XP & Ranking Rules"><i class="fas fa-info-circle"></i></button>
+                </h2>
+                <p id="dashXpText">0 / 500 XP to Level 2</p>
+                <div class="xp-track">
+                    <div class="xp-fill" id="dashXpBar" style="width: 0%;"></div>
+                </div>
+                <div class="stat-icon-wrapper"><i class="fas fa-crown"></i></div>
+            </div>
+            <div class="stat-card animate__animated animate__fadeInUp" style="animation-delay: 0.4s;">
+                <h2 style="display: flex; align-items: center; justify-content: space-between;">
+                    <span id="dashAccuracy">0%</span>
+                    <button class="rank-info-btn" onclick="openRulesModal()" title="View AlgoMaster XP & Ranking Rules"><i class="fas fa-info-circle"></i></button>
+                </h2>
+                <p id="dashRanking">AlgoMaster Tier</p>
+                <div class="stat-icon-wrapper"><i class="fas fa-bullseye"></i></div>
+            </div>
+            <div class="stat-card animate__animated animate__fadeInUp" style="animation-delay: 0.5s;">
+                <h2 id="dashComplexityMastery">100%</h2>
+                <p>Optimal Complexity Efficiency ⚡</p>
+                <div class="stat-icon-wrapper"><i class="fas fa-gauge-high" style="color: var(--orange);"></i></div>
+            </div>
+        </section>
+
+        <section class="dashboard-grid">
+            
+            <div class="glass-card animate__animated animate__fadeInLeft" style="cursor: pointer;" onclick="window.location.href='progress.html'" title="Click to view full interactive analytics and progression dashboard">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                    <div>
+                        <h3 style="margin: 0;"><i class="fas fa-tachometer-alt" style="color: var(--orange);"></i> Weekly Velocity & Accuracy Radar</h3>
+                        <span style="font-size: 0.78rem; color: var(--text-secondary); font-weight: 600;">Last 7 Days Execution Volume vs Accepted Ratio</span>
+                    </div>
+                    <span style="font-size: 0.8rem; font-weight: 700; color: var(--orange); white-space: nowrap;">Full Analytics →</span>
+                </div>
+                <div class="chart-container" style="height: 220px; position: relative;">
+                    <canvas id="progressChart"></canvas>
+                </div>
+            </div>
+
+            <div class="glass-card challenge-card animate__animated animate__fadeInRight">
+                <div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                        <div class="challenge-badge" id="dashDailyPickBadge">Daily Pick</div>
+                        <span id="dashDailyPickDiff" class="difficulty-badge medium" style="font-size: 0.75rem; padding: 4px 10px; border-radius: 6px; font-weight: 800;">Medium</span>
+                    </div>
+                    <h2 id="dashDailyPickTitle" style="min-height: 52px; display: flex; align-items: center;">Selecting today's curated challenge...</h2>
+                </div>
+                <button class="btn btn-primary" id="dashDailyPickBtn" onclick="window.location.href='problems.html'">
+                    Solve Now <i class="fas fa-arrow-right"></i>
+                </button>
+            </div>
+
+        </section>
+
+        <section class="glass-card animate__animated animate__fadeInUp">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                <h3 style="margin: 0;"><i class="fas fa-history" style="color: var(--orange);"></i> Recent Metrics & Submission Activity</h3>
+                <span style="font-size: 0.8rem; font-weight: 700; color: var(--text-secondary);">Live Verified Database Feed</span>
+            </div>
+            <div class="activity-feed" id="dashActivityFeed">
+                <div style="text-align: center; padding: 25px; color: var(--text-muted);">
+                    <i class="fas fa-spinner fa-spin"></i> Fetching live execution telemetry...
+                </div>
+            </div>
+        </section>
+
+        <section class="glass-card animate__animated animate__fadeInUp" style="margin-top: 28px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                <h3 style="margin: 0;"><i class="fas fa-bolt" style="color: var(--orange);"></i> Quick-Launch Category Shortcuts</h3>
+                <span style="font-size: 0.8rem; font-weight: 700; color: var(--text-secondary);">Instant Topic Training</span>
+            </div>
+            <div class="category-shortcuts-grid">
+                <div class="shortcut-card" onclick="window.location.href='problems.html?topic=Arrays%20%26%20Matrices'">
+                    <div class="shortcut-icon"><i class="fas fa-layer-group"></i></div>
+                    <div class="shortcut-text">
+                        <h4>Arrays & Matrices</h4>
+                        <span>Pointers, Sliding Window</span>
+                    </div>
+                </div>
+                <div class="shortcut-card" onclick="window.location.href='problems.html?topic=Dynamic%20Programming'">
+                    <div class="shortcut-icon"><i class="fas fa-cubes"></i></div>
+                    <div class="shortcut-text">
+                        <h4>Dynamic Programming</h4>
+                        <span>Memoization, Tabulation</span>
+                    </div>
+                </div>
+                <div class="shortcut-card" onclick="window.location.href='problems.html?topic=Graphs%20%26%20BFS%2FDFS'">
+                    <div class="shortcut-icon"><i class="fas fa-network-wired"></i></div>
+                    <div class="shortcut-text">
+                        <h4>Graphs & BFS/DFS</h4>
+                        <span>Topological Sort, Union Find</span>
+                    </div>
+                </div>
+                <div class="shortcut-card" onclick="window.location.href='problems.html?topic=Trees%20%26%20BST'">
+                    <div class="shortcut-icon"><i class="fas fa-project-diagram"></i></div>
+                    <div class="shortcut-text">
+                        <h4>Trees & BST</h4>
+                        <span>Inorder, Level Order</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <div id="problemDrawer" class="problem-drawer">
+        <div class="drawer-header">
+            <h2>Problems</h2>
+            <i id="closeDrawer" class="fas fa-times"></i>
+        </div>
+
+        <div class="search-wrapper">
+            <i class="fas fa-search"></i>
+            <input type="text" placeholder="Search arrays, strings, trees...">
+        </div>
+
+        <div class="problem-list">
+            <div class="problem-row">
+                Two Sum
+                <span class="difficulty-badge easy">Easy</span>
+            </div>
+            <div class="problem-row">
+                Reverse Linked List
+                <span class="difficulty-badge easy">Easy</span>
+            </div>
+            <div class="problem-row">
+                3Sum
+                <span class="difficulty-badge medium">Medium</span>
+            </div>
+            <div class="problem-row">
+                Median Of Two Arrays
+                <span class="difficulty-badge hard">Hard</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Interactive Flying Rules Modal -->
+    <div class="rules-modal-overlay" id="rulesModalOverlay" onclick="if(event.target===this) closeRulesModal()">
+        <div class="rules-modal animate__animated animate__zoomIn">
+            <button onclick="closeRulesModal()" style="position: absolute; top: 18px; right: 20px; background: none; border: none; font-size: 1.3rem; color: var(--text-secondary); cursor: pointer;"><i class="fas fa-times"></i></button>
+            <h3><i class="fas fa-shield-alt" style="color: var(--orange);"></i> AlgoMaster XP & Ranking Rules</h3>
+            <p style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.5;">To ensure 100% fair progression and eliminate stat-gaming loopholes, your XP, Level, and Rank Tiers are verified against <strong>Unique Problem Mastery</strong>.</p>
+            
+            <div style="margin: 18px 0;">
+                <h4 style="margin: 0 0 8px 0; font-size: 0.95rem; color: var(--text-primary);"><i class="fas fa-layer-group" style="color: #3b82f6;"></i> Gamified XP & Level Progression</h4>
+                <div class="rules-tier-list">
+                    <div class="rules-tier-item"><strong>Easy Challenge Solved</strong> <span>+20 XP (Unique Only)</span></div>
+                    <div class="rules-tier-item"><strong>Medium Challenge Solved</strong> <span>+50 XP (Unique Only)</span></div>
+                    <div class="rules-tier-item"><strong>Hard Challenge Solved</strong> <span>+100 XP (Unique Only)</span></div>
+                    <div class="rules-tier-item" style="background: #fff7ed; border-color: #fed7aa;"><strong>Level Up Requirement</strong> <span style="color: var(--orange);">Every 500 XP</span></div>
+                </div>
+            </div>
+
+            <div style="margin: 18px 0 0 0;">
+                <h4 style="margin: 0 0 8px 0; font-size: 0.95rem; color: var(--text-primary);"><i class="fas fa-trophy" style="color: #eab308;"></i> Verified Ranking Tiers (Anti-Loophole Protected)</h4>
+                <p style="font-size: 0.8rem; color: var(--text-muted); margin: 0 0 10px 0;">Your tier is calculated solely on your <strong>True Problem Mastery Ratio</strong> (Unique Solved vs. Unique Touched). Re-submitting the same solved question multiple times awards 0 extra XP and cannot inflate your rank!</p>
+                <div class="rules-tier-list">
+                    <div class="rules-tier-item"><strong>Diamond Tier 💎 (Top 8%)</strong> <span>≥ 85.0% Unique Mastery</span></div>
+                    <div class="rules-tier-item"><strong>Gold Tier 🏆 (Top 20%)</strong> <span>70.0% - 84.9% Mastery</span></div>
+                    <div class="rules-tier-item"><strong>Silver Tier ⚡ (Top 40%)</strong> <span>< 70.0% Mastery</span></div>
+                </div>
+            </div>
+
+            <div style="margin-top: 22px; text-align: right;">
+                <button class="btn btn-primary" onclick="closeRulesModal()" style="padding: 10px 24px; font-weight: 800;">Got It, Master!</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // ============================================================================
+        // Professional Interactive Orange Tech Constellation Canvas Background
+        // ============================================================================
+        (function initAmbientCanvas() {
+            const canvas = document.getElementById('ambientOrangeCanvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+
+            let width, height;
+            let nodes = [];
+            const NODE_COUNT = 42;
+            const MOUSE_CONNECT_DIST = 165;
+            const NODE_CONNECT_DIST = 135;
+            const REPULSE_DIST = 95;
+
+            let mouse = { x: -1000, y: -1000, active: false };
+
+            window.addEventListener('mousemove', (e) => {
+                const rect = canvas.getBoundingClientRect();
+                mouse.x = e.clientX - rect.left;
+                mouse.y = e.clientY - rect.top;
+                mouse.active = true;
+            });
+
+            window.addEventListener('mouseleave', () => {
+                mouse.active = false;
+                mouse.x = -1000;
+                mouse.y = -1000;
+            });
+
+            function resize() {
+                const rect = canvas.getBoundingClientRect();
+                width = rect.width;
+                height = rect.height;
+                const dpr = window.devicePixelRatio || 1;
+                canvas.width = width * dpr;
+                canvas.height = height * dpr;
+                ctx.scale(dpr, dpr);
+            }
+
+            window.addEventListener('resize', resize);
+            resize();
+
+            class TechNode {
+                constructor() {
+                    this.reset(true);
+                }
+
+                reset(initial = false) {
+                    this.x = Math.random() * width;
+                    this.y = initial ? Math.random() * height : (Math.random() < 0.5 ? -10 : height + 10);
+                    this.vx = (Math.random() - 0.5) * 0.75;
+                    this.vy = (Math.random() - 0.5) * 0.75;
+                    this.radius = 2.2 + Math.random() * 3.2;
+                    this.baseAlpha = 0.35 + Math.random() * 0.45;
+                    this.alpha = this.baseAlpha;
+                    this.shape = Math.random() < 0.75 ? 'circle' : 'diamond';
+                    this.angle = Math.random() * Math.PI * 2;
+                    this.vAngle = (Math.random() - 0.5) * 0.02;
+                }
+
+                update() {
+                    this.x += this.vx;
+                    this.y += this.vy;
+                    this.angle += this.vAngle;
+
+                    // Mouse interaction (gentle repulsion & orbital float)
+                    if (mouse.active) {
+                        const dx = this.x - mouse.x;
+                        const dy = this.y - mouse.y;
+                        const dist = Math.sqrt(dx * dx + dy * dy);
+                        if (dist < REPULSE_DIST && dist > 0.1) {
+                            const force = (1 - dist / REPULSE_DIST) * 1.8;
+                            this.x += (dx / dist) * force;
+                            this.y += (dy / dist) * force;
+                        }
+                    }
+
+                    // Wrap around boundaries smoothly
+                    if (this.x < -30) this.x = width + 30;
+                    else if (this.x > width + 30) this.x = -30;
+                    if (this.y < -30) this.y = height + 30;
+                    else if (this.y > height + 30) this.y = -30;
+                }
+
+                draw() {
+                    ctx.save();
+                    ctx.translate(this.x, this.y);
+                    ctx.rotate(this.angle);
+                    ctx.fillStyle = `rgba(255, 107, 0, ${this.alpha})`;
+                    ctx.shadowColor = 'rgba(255, 107, 0, 0.4)';
+                    ctx.shadowBlur = 8;
+
+                    if (this.shape === 'circle') {
+                        ctx.beginPath();
+                        ctx.arc(0, 0, this.radius, 0, Math.PI * 2);
+                        ctx.fill();
+                    } else {
+                        // Diamond tech shape
+                        ctx.beginPath();
+                        ctx.moveTo(0, -this.radius * 1.3);
+                        ctx.lineTo(this.radius * 1.3, 0);
+                        ctx.lineTo(0, this.radius * 1.3);
+                        ctx.lineTo(-this.radius * 1.3, 0);
+                        ctx.closePath();
+                        ctx.fill();
+                    }
+                    ctx.restore();
+                }
+            }
+
+            for (let i = 0; i < NODE_COUNT; i++) {
+                nodes.push(new TechNode());
+            }
+
+            function animate() {
+                ctx.clearRect(0, 0, width, height);
+
+                // Draw inter-node constellation network
+                for (let i = 0; i < nodes.length; i++) {
+                    for (let j = i + 1; j < nodes.length; j++) {
+                        const dx = nodes[i].x - nodes[j].x;
+                        const dy = nodes[i].y - nodes[j].y;
+                        const dist = Math.sqrt(dx * dx + dy * dy);
+                        if (dist < NODE_CONNECT_DIST) {
+                            const lineAlpha = (1 - dist / NODE_CONNECT_DIST) * 0.18;
+                            ctx.beginPath();
+                            ctx.moveTo(nodes[i].x, nodes[i].y);
+                            ctx.lineTo(nodes[j].x, nodes[j].y);
+                            ctx.strokeStyle = `rgba(255, 107, 0, ${lineAlpha})`;
+                            ctx.lineWidth = 1;
+                            ctx.stroke();
+                        }
+                    }
+                }
+
+                // Draw mouse connection lines on hover
+                if (mouse.active && mouse.x >= 0 && mouse.x <= width && mouse.y >= 0 && mouse.y <= height) {
+                    for (let i = 0; i < nodes.length; i++) {
+                        const dx = nodes[i].x - mouse.x;
+                        const dy = nodes[i].y - mouse.y;
+                        const dist = Math.sqrt(dx * dx + dy * dy);
+                        if (dist < MOUSE_CONNECT_DIST) {
+                            const lineAlpha = (1 - dist / MOUSE_CONNECT_DIST) * 0.42;
+                            ctx.beginPath();
+                            ctx.moveTo(nodes[i].x, nodes[i].y);
+                            ctx.lineTo(mouse.x, mouse.y);
+                            ctx.strokeStyle = `rgba(255, 107, 0, ${lineAlpha})`;
+                            ctx.lineWidth = 1.4;
+                            ctx.stroke();
+                        }
+                    }
+
+                    // Subtle glowing ambient aura at mouse cursor
+                    const gradient = ctx.createRadialGradient(mouse.x, mouse.y, 0, mouse.x, mouse.y, MOUSE_CONNECT_DIST * 0.6);
+                    gradient.addColorStop(0, 'rgba(255, 107, 0, 0.08)');
+                    gradient.addColorStop(1, 'rgba(255, 107, 0, 0)');
+                    ctx.fillStyle = gradient;
+                    ctx.beginPath();
+                    ctx.arc(mouse.x, mouse.y, MOUSE_CONNECT_DIST * 0.6, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+
+                // Update & draw nodes
+                for (let i = 0; i < nodes.length; i++) {
+                    nodes[i].update();
+                    nodes[i].draw();
+                }
+
+                requestAnimationFrame(animate);
+            }
+
+            animate();
+        })();
+    </script>
+    <script src="main.js"></script>
+</body>
+
+</html>
