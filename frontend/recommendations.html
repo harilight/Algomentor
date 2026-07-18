@@ -822,7 +822,7 @@
             `;
 
             try {
-                const response = await fetch(`http://localhost:5000/api/recommendations/user/${userId}`);
+                const response = await window.safeFetch("http://localhost:5000/api/recommendations/user/${userId}");
                 const data = await response.json();
 
                 if (!data || !data.success) {

@@ -497,10 +497,10 @@
         console.log("Attempting to connect to backend database endpoint...");
         
         const progressPromise = activeUserId 
-            ? fetch(`http://localhost:5000/api/progress/user/${activeUserId}`).then(r => r.json()).catch(() => ({ success: false }))
+            ? window.safeFetch("http://localhost:5000/api/progress/user/${activeUserId}").then(r => r.json()).catch(() => ({ success: false }))
             : Promise.resolve({ success: false });
 
-        const problemsPromise = fetch('http://localhost:5000/api/problems/summary').then(r => {
+        const problemsPromise = window.safeFetch("http://localhost:5000/api/problems/summary").then(r => {
             if (!r.ok) throw new Error(`HTTP error status: ${r.status}`);
             return r.json();
         });

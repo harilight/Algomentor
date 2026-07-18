@@ -803,7 +803,7 @@
                 currentUser = JSON.parse(userStr);
                 
                 // Fetch fresh profile details from API
-                const response = await fetch(`http://localhost:5000/api/auth/profile/${currentUser.id}`);
+                const response = await window.safeFetch("http://localhost:5000/api/auth/profile/${currentUser.id}");
                 const data = await response.json();
 
                 if (data.success && data.user) {
@@ -927,7 +927,7 @@
             updateActiveTopicsCount();
 
             // Fetch live complexity mastery rate for profile stats
-            fetch(`http://localhost:5000/api/analytics/user/${currentUser.id}`)
+            window.safeFetch("http://localhost:5000/api/analytics/user/${currentUser.id}")
                 .then(r => r.ok ? r.json() : null)
                 .then(data => {
                     if (data && data.success && data.kpis) {
