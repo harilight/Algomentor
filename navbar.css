@@ -1,0 +1,62 @@
+/* ==========================================================================
+   AlgoMentor Shared Left Navigation Bar Module Styles
+   ========================================================================== */
+
+.sidebar {
+    width: 260px;
+    background: #ffffff;
+    border-right: 1px solid #e2e8f0;
+    display: flex;
+    flex-direction: column;
+    padding: 2rem 1.5rem;
+    position: fixed;
+    height: 100vh;
+    z-index: 100;
+}
+
+.sidebar .logo {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: #0f172a;
+    letter-spacing: -0.5px;
+    margin-bottom: 3rem;
+}
+
+.sidebar .logo span {
+    color: #FF6B00;
+}
+
+.sidebar ul {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.sidebar ul li {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.85rem 1rem;
+    color: #64748b;
+    font-weight: 500;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.sidebar ul li i {
+    font-size: 1.1rem;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.sidebar ul li:hover {
+    background: rgba(255, 107, 0, 0.08);
+    color: #FF6B00;
+}
+
+.sidebar ul li.active {
+    background: #FF6B00 !important;
+    color: #ffffff !important;
+    box-shadow: 0 4px 14px rgba(255, 107, 0, 0.3);
+}

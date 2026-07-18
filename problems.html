@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Problems Archive | AlgoMentor</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+        :root {
+            --orange: #FF6B00;
+            --orange-hover: #e05e00;
+            --orange-light: rgba(255, 107, 0, 0.08);
+            --black: #0f172a;
+            --white: #ffffff;
+            --bg-main: #f8fafc;
+            --bg-sidebar: #ffffff;
+            --text-primary: #0f172a;
+            --text-secondary: #64748b;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+            --card-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.06);
+            --radius: 12px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            
+            /* Difficulty Tags */
+            --easy: #22c55e;
+            --medium: #eab308;
+            --hard: #ef4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body.problems-page-body {
+            font-family: 'Inter', sans-serif;
+            display: flex;
+            background: var(--bg-main);
+            color: var(--text-primary);
+            min-height: 100vh;
+        }
+
+        /* =========================
+           SIDEBAR (Consistent Styling)
+        ========================= */
+        .sidebar {
+            width: 260px;
+            background: var(--bg-sidebar) !important;
+            border-right: 1px solid var(--border-color) !important;
+            display: flex;
+            flex-direction: column;
+            padding: 2rem 1.5rem !important;
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            z-index: 90;
+        }
+
+        .sidebar .logo {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--text-primary) !important;
+            margin-bottom: 3rem !important;
+            padding-left: 0;
+        }
+
+        .sidebar .logo span { color: var(--orange) !important; }
+
+        .sidebar ul {
+            list-style: none;
+            margin-top: 40px !important;
+            display: flex;
+            flex-direction: column;
+            gap: 0 !important;
+        }
+
+        .sidebar ul li, .sidebar li {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.85rem 1rem !important;
+            margin-bottom: 10px !important;
+            color: var(--text-secondary) !important;
+            font-weight: 500;
+            font-size: 0.95rem;
+            border-radius: var(--radius) !important;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .sidebar ul li:hover, .sidebar li:hover {
+            background: var(--orange-light) !important;
+            color: var(--orange) !important;
+            transform: none !important;
+        }
+
+        .sidebar ul li.active, .sidebar li.active {
+            background: var(--orange) !important;
+            color: var(--white) !important;
+            box-shadow: 0 4px 14px rgba(255, 107, 0, 0.3) !important;
+        }
+
+        /* =========================
+           PROBLEMS CONTENT WORKSPACE
+        ========================= */
+        .problems-main {
+            margin-left: 260px;
+            flex: 1;
+            padding: 40px 50px;
+            max-width: 1300px;
+            width: calc(100% - 260px);
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .page-header {
+            margin-bottom: 35px;
+        }
+
+        .page-header h1 {
+            font-size: 2.2rem;
+            font-weight: 800;
+            letter-spacing: -0.8px;
+            margin-bottom: 8px;
+        }
+
+        .page-header p {
+            color: var(--text-muted);
+            font-size: 1rem;
+        }
+
+        /* Interactive Filter Bar Styles */
+        .filter-container {
+            background: var(--bg-main);
+            padding: 20px;
+            border-radius: 20px;
+            margin-bottom: 30px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            border: 1px solid #f1f3f5;
+        }
+
+        .search-row {
+            display: flex;
+            gap: 16px;
+            width: 100%;
+        }
+
+        .search-box-wrapper {
+            position: relative;
+            flex: 1;
+        }
+
+        .search-box-wrapper i {
+            position: absolute;
+            left: 18px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+        }
+
+        .search-box-wrapper input {
+            width: 100%;
+            padding: 14px 16px 14px 48px;
+            border-radius: 14px;
+            border: 1px solid var(--border-color);
+            background: var(--white);
+            outline: none;
+            font-size: 0.95rem;
+            font-family: inherit;
+            transition: all 0.25s ease;
+        }
+
+        .search-box-wrapper input:focus {
+            border-color: var(--orange);
+            box-shadow: 0 0 0 4px rgba(255, 122, 0, 0.1);
+        }
+
+        .select-filter {
+            padding: 14px 20px;
+            border-radius: 14px;
+            border: 1px solid var(--border-color);
+            background: var(--white);
+            outline: none;
+            font-weight: 500;
+            font-size: 0.95rem;
+            cursor: pointer;
+            color: var(--black);
+        }
+
+        /* Interactive Category Pills */
+        .category-pills {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .pill {
+            padding: 8px 16px;
+            background: var(--white);
+            border: 1px solid var(--border-color);
+            border-radius: 30px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .pill:hover, .pill.active {
+            background: var(--black);
+            color: var(--white);
+            border-color: var(--black);
+        }
+
+        /* =========================
+           LEETCODE-STYLE DATA TABLE
+        ========================= */
+        .table-card {
+            background: var(--white);
+            border-radius: 20px;
+            box-shadow: var(--card-shadow);
+            border: 1px solid #f1f3f5;
+            overflow: hidden;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        th {
+            background: var(--bg-main);
+            padding: 18px 24px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        td {
+            padding: 20px 24px;
+            font-size: 0.95rem;
+            font-weight: 500;
+            border-bottom: 1px solid var(--border-color);
+            transition: background 0.15s ease;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr.problem-row:hover td {
+            background: #fafbfc;
+            cursor: pointer;
+        }
+
+        .prob-title {
+            color: var(--black);
+            font-weight: 600;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        tr.problem-row:hover .prob-title {
+            color: var(--orange);
+        }
+
+        /* Status & Difficulty Badges */
+        .status-icon {
+            font-size: 1.05rem;
+        }
+        .status-icon.completed { color: var(--easy); }
+        .status-icon.attempted { color: var(--medium); }
+
+        .diff-tag {
+            font-size: 0.8rem;
+            font-weight: 700;
+            padding: 6px 14px;
+            border-radius: 30px;
+            display: inline-block;
+        }
+
+        .diff-tag.easy { background: #e6f4ea; color: var(--easy); }
+        .diff-tag.medium { background: #fef7e0; color: var(--medium); }
+        .diff-tag.hard { background: #fce8e6; color: var(--hard); }
+
+        .category-badge {
+            background: #f1f3f5;
+            color: #495057;
+            padding: 4px 10px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        /* Responsive UI Mixins */
+        @media (max-width: 992px) {
+            .search-row { flex-direction: column; }
+            .select-filter { width: 100%; }
+        }
+
+        @media (max-width: 768px) {
+            body.problems-page-body { flex-direction: column; }
+            .sidebar { width: 100%; height: auto; position: relative; padding: 20px; }
+            .problems-main { padding: 25px 20px; }
+            th:nth-child(4), td:nth-child(4) { display: none; } /* Hide Category column on mobile layout */
+        }
+    </style>
+</head>
+
+<body class="problems-page-body">
+
+    <aside class="sidebar">
+        <div class="logo">
+            Algo<span>Mentor</span>
+        </div>
+        <ul>
+            <li onclick="window.location.href='dashboard.html'">
+                <i class="fas fa-columns"></i>
+                Dashboard
+            </li>
+            <li class="active" onclick="window.location.href='problems.html'">
+                <i class="fas fa-code"></i>
+                Problems
+            </li>
+            <li onclick="window.location.href='progress.html'">
+                <i class="fas fa-chart-bar"></i>
+                Progress
+            </li>
+            <li>
+                <i class="fas fa-robot"></i>
+                AI Mentor
+            </li>
+            <li onclick="window.location.href='recommendations.html'">
+                <i class="fas fa-lightbulb"></i>
+                Recommendations
+            </li>
+            <li onclick="window.location.href='visualizer.html'">
+                <i class="fas fa-magic"></i>
+                Visualizer Engine
+            </li>
+            <li onclick="window.location.href='profile.html'">
+                <i class="fas fa-user-circle"></i>
+                Profile
+            </li>
+            <li onclick="logout()">
+                <i class="fas fa-sign-out-alt"></i>
+                Logout
+            </li>
+        </ul>
+    </aside>
+
+    <main class="problems-main">
+        <header class="page-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+            <div>
+                <h1 style="margin-bottom: 6px;">Problem Archive</h1>
+                <p style="margin: 0;">Challenge yourself across data structure trackways aligned directly to your database logs.</p>
+            </div>
+
+            <div class="profile-card" onclick="window.location.href='profile.html'" title="Click to view/edit your Profile">
+                <div class="avatar" style="overflow:hidden;">-</div>
+                <div>
+                    <h3 id="username" style="font-size: 0.95rem; font-weight: 700; margin: 0;">-</h3>
+                    <span style="font-size: 0.75rem; color: var(--text-secondary); display: flex; align-items: center; gap: 4px;">
+                        <span style="width: 6px; height: 6px; background: #22c55e; border-radius: 50%; display: inline-block;"></span> Online
+                    </span>
+                </div>
+            </div>
+        </header>
+
+        <section class="filter-container">
+            <div class="search-row">
+                <div class="search-box-wrapper">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="tableSearch" placeholder="Search problem titles or IDs...">
+                </div>
+                
+                <select id="difficultySelect" class="select-filter">
+                    <option value="all">All Difficulties</option>
+                    <option value="Easy">Easy</option>
+                    <option value="Medium">Medium</option>
+                    <option value="Hard">Hard</option>
+                </select>
+            </div>
+
+            <div class="category-pills" id="categoryPillsContainer">
+                <div class="pill active" data-category="all">All Topics</div>
+                <div class="pill" data-category="Arrays">Arrays</div>
+                <div class="pill" data-category="Strings">Strings</div>
+                <div class="pill" data-category="Linked Lists">Linked Lists</div>
+                <div class="pill" data-category="Trees">Trees</div>
+                <div class="pill" data-category="Dynamic Programming">DP</div>
+            </div>
+        </section>
+
+        <section class="table-card">
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 8%;">Status</th>
+                        <th style="width: 12%;">ID</th>
+                        <th>Title</th>
+                        <th style="width: 20%;">Category</th>
+                        <th style="width: 15%;">Difficulty</th>
+                    </tr>
+                </thead>
+                <tbody id="problemsTableBody">
+                    <tr class="problem-row" data-difficulty="Easy" data-category="Arrays" onclick="navigateToProblem(1)">
+                        <td><i class="fas fa-check-circle status-icon completed"></i></td>
+                        <td style="color: var(--text-muted);">#1</td>
+                        <td><a class="prob-title" href="#">Two Sum</a></td>
+                        <td><span class="category-badge">Arrays</span></td>
+                        <td><span class="diff-tag easy">Easy</span></td>
+                    </tr>
+                    <tr class="problem-row" data-difficulty="Easy" data-category="Linked Lists" onclick="navigateToProblem(177)">
+                        <td><i class="fas fa-check-circle status-icon completed"></i></td>
+                        <td style="color: var(--text-muted);">#206</td>
+                        <td><a class="prob-title" href="#">Reverse Linked List</a></td>
+                        <td><span class="category-badge">Linked Lists</span></td>
+                        <td><span class="diff-tag easy">Easy</span></td>
+                    </tr>
+                    <tr class="problem-row" data-difficulty="Medium" data-category="Strings" onclick="navigateToProblem(3)">
+                        <td><i class="far fa-circle status-icon"></i></td>
+                        <td style="color: var(--text-muted);">#3</td>
+                        <td><a class="prob-title" href="#">Longest Substring Without Repeating Characters</a></td>
+                        <td><span class="category-badge">Strings</span></td>
+                        <td><span class="diff-tag medium">Medium</span></td>
+                    </tr>
+                    <tr class="problem-row" data-difficulty="Hard" data-category="Trees" onclick="navigateToProblem(121)">
+                        <td><i class="fas fa-adjust status-icon attempted"></i></td>
+                        <td style="color: var(--text-muted);">#124</td>
+                        <td><a class="prob-title" href="#">Binary Tree Maximum Path Sum</a></td>
+                        <td><span class="category-badge">Trees</span></td>
+                        <td><span class="diff-tag hard">Hard</span></td>
+                    </tr>
+                </tbody>
+            </table>
+            <div id="loadMoreContainer" style="text-align: center; padding: 25px 0; display: none;">
+                <p id="problemsCountText" style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 12px; font-weight: 500;">Showing 50 of 2000 problems</p>
+                <button id="loadMoreBtn" class="btn btn-primary" style="padding: 12px 32px; font-weight: 600; font-size: 0.95rem; border-radius: 10px; box-shadow: 0 4px 14px rgba(255, 107, 0, 0.25); cursor: pointer;">
+                    <i class="fas fa-plus-circle"></i> Load More Problems (50 more)
+                </button>
+            </div>
+        </section>
+    </main>
+
+    <script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const searchInput = document.getElementById("tableSearch");
+        const difficultySelect = document.getElementById("difficultySelect");
+        const pills = document.querySelectorAll(".category-pills .pill");
+        const tableBody = document.getElementById("problemsTableBody");
+
+        let allProblems = [];
+        let userProgressMap = new Map();
+        let activeCategory = "all";
+        const urlParams = new URLSearchParams(window.location.search);
+        const topicQuery = urlParams.get('topic') || urlParams.get('category');
+        if (topicQuery) {
+            activeCategory = topicQuery;
+            pills.forEach(pill => {
+                const pillCat = pill.getAttribute("data-category") || "";
+                if (pillCat.toLowerCase() === topicQuery.toLowerCase() || pillCat.toLowerCase().includes(topicQuery.toLowerCase()) || topicQuery.toLowerCase().includes(pillCat.toLowerCase())) {
+                    pill.classList.add("active");
+                } else {
+                    pill.classList.remove("active");
+                }
+            });
+        }
+
+        let currentFilteredProblems = [];
+        const DEFAULT_PAGE_SIZE = 50;
+        let currentLimit = DEFAULT_PAGE_SIZE;
+
+        let activeUserId = null;
+        try {
+            const userSession = JSON.parse(localStorage.getItem('user'));
+            if (userSession && userSession.id) activeUserId = userSession.id;
+        } catch(e) {}
+
+        console.log("Attempting to connect to backend database endpoint...");
+        
+        const progressPromise = activeUserId 
+            ? fetch(`http://localhost:5000/api/progress/user/${activeUserId}`).then(r => r.json()).catch(() => ({ success: false }))
+            : Promise.resolve({ success: false });
+
+        const problemsPromise = fetch('http://localhost:5000/api/problems/summary').then(r => {
+            if (!r.ok) throw new Error(`HTTP error status: ${r.status}`);
+            return r.json();
+        });
+
+        Promise.all([problemsPromise, progressPromise])
+            .then(([problemsData, progressRes]) => {
+                console.log("Success! Received problems data:", problemsData);
+                allProblems = problemsData;
+                
+                if (progressRes && progressRes.success && Array.isArray(progressRes.progress)) {
+                    progressRes.progress.forEach(p => {
+                        if (p.problem_id) userProgressMap.set(Number(p.problem_id), p.status);
+                    });
+                }
+                filterTable();
+            })
+            .catch(err => {
+                console.error("DETAILED FETCH ERROR LOG:", err);
+                tableBody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:red;">
+                    Failed to load problems from database.<br>
+                    <small style="color:gray;">Error details: ${err.message}. Press F12 and check the Console tab.</small>
+                </td></tr>`;
+            });
+
+        function renderTable(problemsToRender, resetPagination = true) {
+            if (resetPagination) {
+                currentLimit = DEFAULT_PAGE_SIZE;
+            }
+
+            const pageProblems = problemsToRender.slice(0, currentLimit);
+            tableBody.innerHTML = "";
+
+            if (problemsToRender.length === 0) {
+                tableBody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:var(--text-muted);">No problems found matching filters.</td></tr>`;
+                const container = document.getElementById("loadMoreContainer");
+                if (container) container.style.display = "none";
+                return;
+            }
+
+            pageProblems.forEach(prob => {
+                const diffClass = prob.difficulty ? prob.difficulty.toLowerCase() : 'easy';
+                const categoryText = prob.category || "General";
+                const displayId = prob.leetcode_id || prob.id;
+
+                const row = document.createElement("tr");
+                row.className = "problem-row";
+                row.setAttribute("data-difficulty", prob.difficulty);
+                row.setAttribute("data-category", categoryText);
+                row.onclick = () => navigateToProblem(prob.id);
+
+                let statusIconHtml = `<i class="far fa-circle status-icon" style="color: #cbd5e1; font-size: 1.15rem;" title="Unsolved"></i>`;
+                const userStatus = userProgressMap.get(Number(prob.id));
+                if (userStatus === 'Accepted') {
+                    statusIconHtml = `<i class="fas fa-check-circle status-icon completed" style="color: #22c55e; font-size: 1.15rem;" title="Solved ✔"></i>`;
+                } else if (userStatus === 'Attempted') {
+                    statusIconHtml = `<i class="fas fa-dot-circle status-icon attempted" style="color: #eab308; font-size: 1.15rem;" title="Attempted"></i>`;
+                }
+
+                row.innerHTML = `
+                    <td>${statusIconHtml}</td>
+                    <td style="color: var(--text-muted);">#${displayId}</td>
+                    <td><a class="prob-title" href="#">${prob.title}</a></td>
+                    <td><span class="category-badge">${categoryText}</span></td>
+                    <td><span class="diff-tag ${diffClass}">${prob.difficulty}</span></td>
+                `;
+                tableBody.appendChild(row);
+            });
+
+            // Update Load More UI
+            const container = document.getElementById("loadMoreContainer");
+            const countText = document.getElementById("problemsCountText");
+            const loadBtn = document.getElementById("loadMoreBtn");
+
+            if (container && countText && loadBtn) {
+                if (problemsToRender.length > pageProblems.length) {
+                    container.style.display = "block";
+                    loadBtn.style.display = "inline-block";
+                    countText.textContent = `Showing ${pageProblems.length} of ${problemsToRender.length} problems`;
+                    const remaining = problemsToRender.length - pageProblems.length;
+                    const nextBatch = Math.min(DEFAULT_PAGE_SIZE, remaining);
+                    loadBtn.innerHTML = `<i class="fas fa-plus-circle"></i> Load More Problems (${nextBatch} more)`;
+                } else {
+                    if (problemsToRender.length > DEFAULT_PAGE_SIZE) {
+                        container.style.display = "block";
+                        countText.textContent = `Showing all ${problemsToRender.length} problems`;
+                        loadBtn.style.display = "none";
+                    } else {
+                        container.style.display = "none";
+                    }
+                }
+            }
+        }
+
+        const loadMoreBtn = document.getElementById("loadMoreBtn");
+        if (loadMoreBtn) {
+            loadMoreBtn.addEventListener("click", () => {
+                currentLimit += DEFAULT_PAGE_SIZE;
+                renderTable(currentFilteredProblems, false);
+            });
+        }
+
+        function filterTable() {
+            const searchVal = searchInput.value.toLowerCase().trim();
+            const difficultyVal = difficultySelect.value;
+
+            currentFilteredProblems = allProblems.filter(prob => {
+                const displayId = String(prob.leetcode_id || prob.id);
+                const title = prob.title.toLowerCase();
+                const difficulty = prob.difficulty;
+                
+                // Normalize database category (fallback to "general" if blank)
+                const dbCategory = (prob.category || "General").toLowerCase().trim();
+                // Normalize frontend active pill selection
+                const selectedCategory = activeCategory.toLowerCase().trim();
+
+                const matchesSearch = title.includes(searchVal) || displayId.includes(searchVal);
+                const matchesDifficulty = (difficultyVal === "all" || difficulty === difficultyVal);
+                
+                // SMARTER FILTER: Checks if either string contains the other (handles Array vs Arrays, String vs Strings)
+                const matchesCategory = (activeCategory === "all" || 
+                                         dbCategory.includes(selectedCategory) || 
+                                         selectedCategory.includes(dbCategory));
+
+                return matchesSearch && matchesDifficulty && matchesCategory;
+            });
+
+            renderTable(currentFilteredProblems, true);
+        }
+
+        searchInput.addEventListener("input", filterTable);
+        difficultySelect.addEventListener("change", filterTable);
+
+        pills.forEach(pill => {
+            pill.addEventListener("click", () => {
+                pills.forEach(p => p.classList.remove("active"));
+                pill.classList.add("active");
+                activeCategory = pill.getAttribute("data-category");
+                filterTable();
+            });
+        });
+    });
+
+    function navigateToProblem(problemId) {
+        window.location.href = `workspace.html?id=${problemId}&from=problems.html`;
+    }
+
+    function logout() {
+    // 1. Clear user session data from localStorage / sessionStorage
+    localStorage.removeItem("user");
+    sessionStorage.clear(); // Clears any temporary session data
+
+    // 2. Add a smooth fade-out effect or immediate redirect
+    console.log("User logged out successfully.");
+    
+    // 3. Redirect back to your login or index entry point page
+    window.location.href = "login.html"; 
+}
+</script>
+<script src="main.js"></script>
+</body>
+
+</html>
