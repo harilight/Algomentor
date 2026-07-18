@@ -2,32 +2,44 @@
 
 [![Live Demo](https://img.shields.io/badge/Live%20Demo-https%3A%2F%2Fharilight.github.io%2FAlgomentor%2F-blueviolet?style=for-the-badge&logo=github)](https://harilight.github.io/Algomentor/)
 
-> 🚀 **Live Demo:** Access the live frontend application directly at [https://harilight.github.io/Algomentor/](https://harilight.github.io/Algomentor/)
+> 🚀 **Live Demo:** Explore the fully interactive frontend application directly at [https://harilight.github.io/Algomentor/](https://harilight.github.io/Algomentor/)
 
 ---
 
-## 🌟 Key Features
+## 🌟 Feature Overview & Previews
 
-1. **Interactive Workspace & Code Editor**
-   - Built with Monaco Editor (VS Code editor engine).
-   - Multi-language support (Python, JavaScript, C++, Java).
-   - Real-time test case execution and verdict evaluation (Accepted, Wrong Answer, Time Limit Exceeded).
+### 1. User Dashboard & Performance KPIs
+Provides real-time stats on solved problem breakdown, overall acceptance rate, time-complexity mastery, and weekly practice activity.
 
-2. **Live Execution Visualizer (CodeViz Engine)**
-   - Step-by-step line-by-line visual execution tracing using Python `sys.settrace` and AST inspection.
-   - Dynamic memory, call stack, variable inspector, and data structure visualizations (Arrays, Matrices, Trees, Graphs).
+![Dashboard Preview](assets/dashboard_preview.jpg)
 
-3. **Empirical & Static Complexity Analysis**
-   - Evaluates both Time Complexity (Big-O) and Auxiliary Space Complexity for user submissions.
-   - Compares user complexity against optimal solution baselines.
+---
 
-4. **Adaptive Recommendation & Skill Tracking**
-   - Personalized problem recommendations based on topic mastery and error intensity metrics.
-   - Comprehensive performance dashboards displaying problem submission history and acceptance stats.
+### 2. Interactive Workspace & Multi-Language IDE
+Built with Monaco Editor (VS Code engine). Features real-time test case execution, verdict evaluation (Accepted, Wrong Answer, TLE), and Big-O Time & Space complexity analysis.
 
-5. **User Profile & Dynamic Analytics**
-   - Custom avatar customization, user details, and full submission history.
-   - Dynamic navbar profile synchronization across all platform pages.
+![Workspace Preview](assets/workspace_preview.jpg)
+
+---
+
+### 3. Live AST Execution Visualizer (CodeViz Engine)
+Step-by-step line-by-line visual execution tracing using Python `sys.settrace` and AST inspection with dynamic call stack and variable state inspection.
+
+![Visualizer Preview](assets/visualizer_preview.jpg)
+
+---
+
+### 4. Progress Analytics & Skill Mastery
+Detailed performance diagnostics, topic distribution (Arrays, DP, Trees, Graphs), difficulty distribution breakdown, and submission history log.
+
+![Progress Preview](assets/progress_preview.jpg)
+
+---
+
+### 5. Adaptive AI Problem Recommendations
+Personalized problem recommendations based on topic mastery, error intensity, and prerequisite DAG learning paths.
+
+![Recommendations Preview](assets/recommendations_preview.jpg)
 
 ---
 
@@ -82,7 +94,7 @@
    The server runs on `http://localhost:5000`.
 
 ### 3. Frontend Setup
-Simply open `frontend/index.html` or `frontend/login.html` in any modern web browser or serve it using a local server (e.g. VS Code Live Server or `npx serve frontend`), or access the deployed GitHub Pages at [https://harilight.github.io/Algomentor/](https://harilight.github.io/Algomentor/).
+Simply open `frontend/index.html` or `frontend/login.html` in any modern web browser or visit the deployed GitHub Pages at [https://harilight.github.io/Algomentor/](https://harilight.github.io/Algomentor/).
 
 ---
 
@@ -90,6 +102,7 @@ Simply open `frontend/index.html` or `frontend/login.html` in any modern web bro
 
 ```
 Algomentor/
+├── assets/                 # High-resolution feature previews
 ├── backend/
 │   ├── config/             # DB connection pool setup
 │   ├── routes/             # API routes (auth, execution, analytics, problems)
@@ -101,6 +114,7 @@ Algomentor/
 │   ├── db_setup.js         # Self-healing MySQL table schema and seeder
 │   └── package.json
 ├── frontend/
+│   ├── assets/             # Frontend static assets
 │   ├── index.html          # Landing page
 │   ├── login.html & register.html
 │   ├── dashboard.html      # Main user dashboard
