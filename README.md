@@ -1,6 +1,8 @@
 # AlgoMentor - Interactive Algorithm Learning & Visual Execution Platform
 
-AlgoMentor is an advanced algorithmic learning and practice platform equipped with live code execution, real-time Python AST execution tracing, algorithmic complexity analysis, and personalized learning recommendations.
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-https%3A%2F%2Fharilight.github.io%2FAlgomentor%2F-blueviolet?style=for-the-badge&logo=github)](https://harilight.github.io/Algomentor/)
+
+> 🚀 **Live Demo:** Access the live frontend application directly at [https://harilight.github.io/Algomentor/](https://harilight.github.io/Algomentor/)
 
 ---
 
@@ -80,7 +82,7 @@ AlgoMentor is an advanced algorithmic learning and practice platform equipped wi
    The server runs on `http://localhost:5000`.
 
 ### 3. Frontend Setup
-Simply open `frontend/index.html` or `frontend/login.html` in any modern web browser or serve it using a local server (e.g. VS Code Live Server or `npx serve frontend`).
+Simply open `frontend/index.html` or `frontend/login.html` in any modern web browser or serve it using a local server (e.g. VS Code Live Server or `npx serve frontend`), or access the deployed GitHub Pages at [https://harilight.github.io/Algomentor/](https://harilight.github.io/Algomentor/).
 
 ---
 
