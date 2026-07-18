@@ -659,7 +659,7 @@
         }
 
        function fetchProblemData() {
-    fetch(`http://localhost:5000/api/problems/${problemId}`)
+    window.safeFetch("http://localhost:5000/api/problems/${problemId}")
         .then(res => {
             if (!res.ok) throw new Error(`Status failed: ${res.status}`);
             return res.json();
@@ -727,7 +727,7 @@ function populateWorkspace(prob) {
         } catch(e) {}
 
         if (activeUserId) {
-            fetch(`http://localhost:5000/api/submissions/problem/${prob.id}?userId=${activeUserId}`)
+            window.safeFetch("http://localhost:5000/api/submissions/problem/${prob.id}?userId=${activeUserId}")
                 .then(r => r.json())
                 .then(data => {
                     if (data.success && data.submissions && data.submissions.length > 0) {
@@ -934,7 +934,7 @@ function populateWorkspace(prob) {
                 if (userSession && userSession.id) activeUserId = userSession.id;
             } catch(e) {}
 
-            fetch(`http://localhost:5000/api/submissions/problem/${problemId}?userId=${activeUserId || 'null'}`)
+            window.safeFetch("http://localhost:5000/api/submissions/problem/${problemId}?userId=${activeUserId || ")
                 .then(res => res.json())
                 .then(data => {
                     if (!data.success || !data.submissions || data.submissions.length === 0) {
